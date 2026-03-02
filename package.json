@@ -49,6 +49,8 @@
 		"koffi": "^2.15.1"
 	},
 	"overrides": {
+		"glob": "^11.0.0",
+		"node-domexception": "npm:empty-package",
 		"rimraf": "6.1.2",
 		"fast-xml-parser": "5.3.8",
 		"gaxios": {
