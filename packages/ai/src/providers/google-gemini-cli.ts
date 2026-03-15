@@ -201,6 +201,11 @@ export function extractRetryDelay(errorText: string, response?: Response | Heade
 		}
 	}
 
+	// Pattern 4: Google Gemini "Tokens per minute" or "Requests per minute" limits
+	if (/tokens? per minute|requests? per minute|resource.?exhausted|check quota/i.test(errorText)) {
+		return normalizeDelay(60000);
+	}
+
 	return undefined;
 }
 
@@ -437,8 +442,8 @@ export const streamGoogleGeminiCli: StreamFunction<"google-gemini-cli", GoogleGe
 						const serverDelay = extractRetryDelay(errorText, response);
 						const delayMs = serverDelay ?? BASE_DELAY_MS * 2 ** attempt;
 
-						// Check if server delay exceeds max allowed (default: 60s)
-						const maxDelayMs = options?.maxRetryDelayMs ?? 60000;
+						// Check if server delay exceeds max allowed (default: 120s)
+						const maxDelayMs = options?.maxRetryDelayMs ?? 120000;
 						if (maxDelayMs > 0 && serverDelay && serverDelay > maxDelayMs) {
 							const delaySeconds = Math.ceil(serverDelay / 1000);
 							throw new Error(
