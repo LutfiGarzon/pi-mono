@@ -948,6 +948,45 @@ export class ToolExecutionComponent extends Container {
 					text += `\n${theme.fg("warning", `[Truncated: ${warnings.join(", ")}]`)}`;
 				}
 			}
+		} else if (this.toolName === "plan") {
+			const objective = str(this.args?.objective);
+			const action = str(this.args?.action);
+			const tasks = this.args?.tasks as Array<{ description: string; status: string }> | undefined;
+
+			text =
+				theme.fg("toolTitle", theme.bold("plan")) +
+				" " +
+				(objective === null ? invalidArg : theme.fg("accent", objective)) +
+				theme.fg("toolOutput", ` (${action === null ? invalidArg : action})`);
+
+			if (tasks) {
+				const maxTasks = this.expanded ? tasks.length : 5;
+				const displayTasks = tasks.slice(0, maxTasks);
+				const remaining = tasks.length - maxTasks;
+
+				text += `\n\n${displayTasks
+					.map((t) => theme.fg("toolOutput", `${t.status === "completed" ? "[x]" : "[ ]"} ${t.description}`))
+					.join("\n")}`;
+				if (remaining > 0) {
+					text += `${theme.fg("muted", `\n... (${remaining} more tasks,`)} ${keyHint("app.tools.expand", "to expand")})`;
+				}
+			}
+		} else if (this.toolName === "ask") {
+			const question = str(this.args?.question);
+			const optionA = str(this.args?.optionA);
+			const optionB = str(this.args?.optionB);
+
+			text = theme.fg("toolTitle", theme.bold("ask"));
+
+			if (question !== null) {
+				text += `\n\n${theme.fg("accent", question)}`;
+			}
+			if (optionA !== null) {
+				text += `\n\n${theme.fg("toolOutput", "Option A: ")}${optionA}`;
+			}
+			if (optionB !== null) {
+				text += `\n${theme.fg("toolOutput", "Option B: ")}${optionB}`;
+			}
 		} else {
 			// Generic tool (shouldn't reach here for custom tools)
 			text = theme.fg("toolTitle", theme.bold(this.toolName));

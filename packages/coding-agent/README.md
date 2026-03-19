@@ -272,6 +272,12 @@ Replace the default system prompt with `.pi/SYSTEM.md` (project) or `~/.pi/agent
 
 ---
 
+## Plan Mode
+
+Pi includes a built-in `plan` and `ask` tool for structured execution of complex tasks. The `plan` tool allows the agent to create and update markdown-based checklists inside the `.pi/plan/` directory of your project. The `ask` tool empowers the agent to pause execution and present you with options when it requires your input to proceed.
+
+---
+
 ## Customization
 
 ### Prompt Templates
@@ -499,7 +505,7 @@ cat README.md | pi -p "Summarize this text"
 | `--tools <list>` | Enable specific built-in tools (default: `read,bash,edit,write`) |
 | `--no-tools` | Disable all built-in tools (extension tools still work) |
 
-Available built-in tools: `read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`
+Available built-in tools: `read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`, `plan`, `ask`
 
 ### Resource Options
 

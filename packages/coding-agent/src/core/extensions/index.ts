@@ -28,6 +28,8 @@ export type {
 	// App keybindings (for custom editors)
 	AppKeybinding,
 	// Events - Tool (ToolCallEvent types)
+	AskToolCallEvent,
+	AskToolResultEvent,
 	BashToolCallEvent,
 	BashToolResultEvent,
 	BeforeAgentStartEvent,
@@ -92,6 +94,8 @@ export type {
 	MessageUpdateEvent,
 	ModelSelectEvent,
 	ModelSelectSource,
+	PlanToolCallEvent,
+	PlanToolResultEvent,
 	// Provider Registration
 	ProviderConfig,
 	ProviderModelConfig,
@@ -154,11 +158,13 @@ export type {
 } from "./types.js";
 // Type guards
 export {
+	isAskToolResult,
 	isBashToolResult,
 	isEditToolResult,
 	isFindToolResult,
 	isGrepToolResult,
 	isLsToolResult,
+	isPlanToolResult,
 	isReadToolResult,
 	isToolCallEventType,
 	isWriteToolResult,

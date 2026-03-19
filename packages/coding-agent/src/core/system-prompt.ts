@@ -14,6 +14,8 @@ const toolDescriptions: Record<string, string> = {
 	grep: "Search file contents for patterns (respects .gitignore)",
 	find: "Find files by glob pattern (respects .gitignore)",
 	ls: "List directory contents",
+	plan: "Track objectives and tasks in a checklist (.pi/plan/)",
+	ask: "Pause and ask the user for clarification with recommended options",
 };
 
 export interface BuildSystemPromptOptions {
@@ -93,7 +95,7 @@ export function buildSystemPrompt(options: BuildSystemPromptOptions = {}): strin
 
 	// Build tools list based on selected tools.
 	// Built-ins use toolDescriptions. Custom tools can provide one-line snippets.
-	const tools = selectedTools || ["read", "bash", "edit", "write"];
+	const tools = selectedTools || ["read", "bash", "edit", "write", "plan", "ask"];
 	const visibleTools = tools.filter((name) => name in toolDescriptions || toolSnippets?.[name]);
 	const toolsList =
 		visibleTools.length > 0
