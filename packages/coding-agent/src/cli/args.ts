@@ -222,7 +222,7 @@ ${chalk.bold("Options:")}
   --models <patterns>            Comma-separated model patterns for Ctrl+P cycling
                                  Supports globs (anthropic/*, *sonnet*) and fuzzy matching
   --no-tools                     Disable all tools by default (built-in and extension)
-  --tools <tools>                Comma-separated allowlist of tool names to enable
+  --tools <tools>                Comma-separated allowlist of tool names to enable (default: read,bash,edit,write,plan,ask)
                                  Applies to built-in and extension tools
   --thinking <level>             Set thinking level: off, minimal, low, medium, high, xhigh
   --extension, -e <path>         Load an extension file (can be used multiple times)
@@ -331,5 +331,7 @@ ${chalk.bold("Built-in Tool Names:")}
   grep   - Search file contents (read-only, off by default)
   find   - Find files by glob pattern (read-only, off by default)
   ls     - List directory contents (read-only, off by default)
+  plan   - Track objectives and tasks in a checklist (.pi/plan/)
+  ask    - Pause and ask the user for clarification with recommended options
 `);
 }
