@@ -18,15 +18,18 @@ import { getDefaultSessionDir, SessionManager } from "./session-manager.ts";
 import { SettingsManager } from "./settings-manager.ts";
 import { time } from "./timings.ts";
 import {
+
 	createBashTool,
 	createCodingTools,
 	createEditTool,
 	createFindTool,
 	createGrepTool,
 	createLsTool,
+	createPlanTool,
 	createReadOnlyTools,
 	createReadTool,
 	createWriteTool,
+
 	type ToolName,
 	withFileMutationQueue,
 } from "./tools/index.ts";

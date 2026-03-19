@@ -386,5 +386,7 @@ ${chalk.bold("Built-in Tool Names:")}
   grep   - Search file contents (read-only, off by default)
   find   - Find files by glob pattern (read-only, off by default)
   ls     - List directory contents (read-only, off by default)
+  plan   - Track objectives and tasks in a checklist (.pi/plan/)
+  ask    - Pause and ask the user for clarification with recommended options
 `);
 }

@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Added `plan` and `ask` to default built-in tools.
 
 ### Fixed
 
