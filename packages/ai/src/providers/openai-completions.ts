@@ -89,9 +89,46 @@ export const streamOpenAICompletions: StreamFunction<"openai-completions", OpenA
 			let params = buildParams(model, context, options);
 			const nextParams = await options?.onPayload?.(params, model);
 			if (nextParams !== undefined) {
-				params = nextParams as OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming;
+				params = nextParams as OpenAI.Chat.Completions.ChatCompletionCreateParams;
 			}
-			const openaiStream = await client.chat.completions.create(params, { signal: options?.signal });
+			let openaiStream: any;
+			if (params.stream) {
+				openaiStream = await client.chat.completions.create(params as any, { signal: options?.signal });
+			} else {
+				const response = await client.chat.completions.create(params as any, { signal: options?.signal });
+				openaiStream = [
+					{
+						id: response.id,
+						usage: response.usage,
+						choices: response.choices.map((c) => ({
+							finish_reason: c.finish_reason,
+							delta: {
+								content: c.message?.content,
+								tool_calls: c.message?.tool_calls?.map((tc) => {
+									if (tc.type === "function") {
+										return {
+											id: tc.id,
+											function: {
+												name: tc.function.name,
+												arguments: tc.function.arguments,
+											},
+										};
+									}
+									return tc;
+								}),
+								// Also pass through reasoning if it exists
+								...("reasoning_content" in (c.message || {}) && {
+									reasoning_content: (c.message as any).reasoning_content,
+								}),
+								...("reasoning" in (c.message || {}) && { reasoning: (c.message as any).reasoning }),
+								...("reasoning_text" in (c.message || {}) && {
+									reasoning_text: (c.message as any).reasoning_text,
+								}),
+							},
+						})),
+					},
+				];
+			}
 			stream.push({ type: "start", partial: output });
 
 			let currentBlock: TextContent | ThinkingContent | (ToolCall & { partialArgs?: string }) | null = null;
@@ -367,13 +404,13 @@ function buildParams(model: Model<"openai-completions">, context: Context, optio
 	const messages = convertMessages(model, context, compat);
 	maybeAddOpenRouterAnthropicCacheControl(model, messages);
 
-	const params: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming = {
+	const params: OpenAI.Chat.Completions.ChatCompletionCreateParams = {
 		model: model.id,
 		messages,
-		stream: true,
+		stream: compat.supportsStreaming !== false,
 	};
 
-	if (compat.supportsUsageInStreaming !== false) {
+	if (params.stream && compat.supportsUsageInStreaming !== false) {
 		(params as any).stream_options = { include_usage: true };
 	}
 
@@ -393,15 +430,17 @@ function buildParams(model: Model<"openai-completions">, context: Context, optio
 		params.temperature = options.temperature;
 	}
 
-	if (context.tools) {
-		params.tools = convertTools(context.tools, compat);
-	} else if (hasToolHistory(context.messages)) {
-		// Anthropic (via LiteLLM/proxy) requires tools param when conversation has tool_calls/tool_results
-		params.tools = [];
-	}
+	if (compat.supportsTools !== false) {
+		if (context.tools) {
+			params.tools = convertTools(context.tools, compat);
+		} else if (hasToolHistory(context.messages)) {
+			// Anthropic (via LiteLLM/proxy) requires tools param when conversation has tool_calls/tool_results
+			params.tools = [];
+		}
 
-	if (options?.toolChoice) {
-		params.tool_choice = options.toolChoice;
+		if (options?.toolChoice) {
+			params.tool_choice = options.toolChoice;
+		}
 	}
 
 	if (compat.thinkingFormat === "zai" && model.reasoning) {
@@ -832,6 +871,8 @@ function detectCompat(model: Model<"openai-completions">): Required<OpenAIComple
 		openRouterRouting: {},
 		vercelGatewayRouting: {},
 		supportsStrictMode: true,
+		supportsStreaming: true,
+		supportsTools: true,
 	};
 }
 
@@ -858,5 +899,7 @@ function getCompat(model: Model<"openai-completions">): Required<OpenAICompletio
 		openRouterRouting: model.compat.openRouterRouting ?? {},
 		vercelGatewayRouting: model.compat.vercelGatewayRouting ?? detected.vercelGatewayRouting,
 		supportsStrictMode: model.compat.supportsStrictMode ?? detected.supportsStrictMode,
+		supportsStreaming: model.compat.supportsStreaming ?? detected.supportsStreaming,
+		supportsTools: model.compat.supportsTools ?? detected.supportsTools,
 	};
 }

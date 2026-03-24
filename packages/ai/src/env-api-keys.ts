@@ -109,6 +109,10 @@ export function getEnvApiKey(provider: any): string | undefined {
 		}
 	}
 
+	if (provider === "local") {
+		return process.env.LOCAL_API_KEY || "sk-local";
+	}
+
 	const envMap: Record<string, string> = {
 		openai: "OPENAI_API_KEY",
 		"azure-openai-responses": "AZURE_OPENAI_API_KEY",
