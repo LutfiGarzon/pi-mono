@@ -1,7 +1,13 @@
 import type { AgentTool } from "@mariozechner/pi-agent-core";
+import { Spacer, Text } from "@mariozechner/pi-tui";
 import { type Static, Type } from "@sinclair/typebox";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { keyHint } from "../../modes/interactive/components/keybinding-hints.js";
+import { theme } from "../../modes/interactive/theme/theme.js";
+import type { ToolDefinition } from "../extensions/types.js";
+import { invalidArgText, str } from "./render-utils.js";
+import { wrapToolDefinition } from "./tool-definition-wrapper.js";
 
 const planTaskSchema = Type.Object({
 	description: Type.String({ description: "The task description" }),
@@ -35,11 +41,42 @@ function generateMarkdown(objective: string, tasks: Static<typeof planTaskSchema
 	return md;
 }
 
-export function createPlanTool(cwd: string): AgentTool<typeof planSchema> {
+function formatPlanCall(args: Partial<PlanToolInput> | undefined): string {
+	const objective = str(args?.objective);
+	const action = str(args?.action);
+	const invalidArg = invalidArgText(theme);
+
+	return (
+		theme.fg("toolTitle", theme.bold("plan")) +
+		" " +
+		(objective === null ? invalidArg : theme.fg("accent", objective)) +
+		theme.fg("toolOutput", ` (${action === null ? invalidArg : action})`)
+	);
+}
+
+function formatPlanResult(args: Partial<PlanToolInput> | undefined, expanded: boolean): string {
+	const tasks = args?.tasks;
+	if (!tasks || !Array.isArray(tasks)) return "";
+
+	const maxTasks = expanded ? tasks.length : 5;
+	const displayTasks = tasks.slice(0, maxTasks);
+	const remaining = tasks.length - maxTasks;
+
+	let text = displayTasks
+		.map((t) => theme.fg("toolOutput", `${t.status === "completed" ? "[x]" : "[ ]"} ${t.description}`))
+		.join("\n");
+	if (remaining > 0) {
+		text += `\n${theme.fg("muted", `... (${remaining} more tasks,`)} ${keyHint("app.tools.expand", "to expand")})`;
+	}
+	return text;
+}
+
+export function createPlanToolDefinition(cwd: string): ToolDefinition<typeof planSchema, undefined> {
 	return {
 		name: "plan",
 		label: "plan",
 		description: "Track objectives and their required tasks using a checklist. Saves to .pi/plan/ directory.",
+		promptSnippet: "Track objectives and their required tasks using a checklist",
 		parameters: planSchema,
 		execute: async (_toolCallId: string, input: PlanToolInput, signal?: AbortSignal) => {
 			if (signal?.aborted) {
@@ -69,7 +106,26 @@ export function createPlanTool(cwd: string): AgentTool<typeof planSchema> {
 				details: undefined,
 			};
 		},
+		renderCall(args, _theme, context) {
+			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
+			text.setText(formatPlanCall(args));
+			return text;
+		},
+		renderResult(_result, options, _theme, context) {
+			const output = formatPlanResult(context.args, options.expanded);
+			if (!output) {
+				return (context.lastComponent as Spacer | undefined) ?? new Spacer(0);
+			}
+			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
+			text.setText(`\n${output}`);
+			return text;
+		},
 	};
 }
 
+export function createPlanTool(cwd: string): AgentTool<typeof planSchema> {
+	return wrapToolDefinition(createPlanToolDefinition(cwd));
+}
+
+export const planToolDefinition = createPlanToolDefinition(process.cwd());
 export const planTool = createPlanTool(process.cwd());
