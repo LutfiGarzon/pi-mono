@@ -8,7 +8,7 @@ import { editTool } from "../src/core/tools/edit.js";
 import { findTool } from "../src/core/tools/find.js";
 import { grepTool } from "../src/core/tools/grep.js";
 import { lsTool } from "../src/core/tools/ls.js";
-import { readTool } from "../src/core/tools/read.js";
+import { createReadTool, readTool } from "../src/core/tools/read.js";
 import { writeTool } from "../src/core/tools/write.js";
 import * as shellModule from "../src/utils/shell.js";
 
@@ -164,7 +164,9 @@ describe("Coding Agent Tools", () => {
 			const testFile = join(testDir, "image.txt");
 			writeFileSync(testFile, pngBuffer);
 
-			const result = await readTool.execute("test-call-img-1", { path: testFile });
+			// Use a tool instance with auto-resize disabled to avoid photon dependency in tests
+			const tool = createReadTool(testDir, { autoResizeImages: false });
+			const result = await tool.execute("test-call-img-1", { path: testFile });
 
 			expect(result.content[0]?.type).toBe("text");
 			expect(getTextOutput(result)).toContain("Read image file [image/png]");
