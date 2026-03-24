@@ -174,7 +174,9 @@ describe("Coding Agent Tools", () => {
 			const testFile = join(testDir, "image.txt");
 			writeFileSync(testFile, pngBuffer);
 
-			const result = await readTool.execute("test-call-img-1", { path: testFile });
+			// Use a tool instance with auto-resize disabled to avoid photon dependency in tests
+			const tool = createReadTool(testDir, { autoResizeImages: false });
+			const result = await tool.execute("test-call-img-1", { path: testFile });
 
 			expect(result.content[0]?.type).toBe("text");
 			expect(getTextOutput(result)).toContain("Read image file [image/png]");
