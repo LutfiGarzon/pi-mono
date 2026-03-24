@@ -41,7 +41,7 @@ describe("withFileMutationQueue", () => {
 
 		const first = withFileMutationQueue(path, async () => {
 			order.push("first:start");
-			await delay(30);
+			await delay(100);
 			order.push("first:end");
 		});
 		const second = withFileMutationQueue(path, async () => {
@@ -59,12 +59,12 @@ describe("withFileMutationQueue", () => {
 		await Promise.all([
 			withFileMutationQueue("/tmp/file-mutation-queue-a", async () => {
 				order.push("a:start");
-				await delay(30);
+				await delay(100);
 				order.push("a:end");
 			}),
 			withFileMutationQueue("/tmp/file-mutation-queue-b", async () => {
 				order.push("b:start");
-				await delay(30);
+				await delay(100);
 				order.push("b:end");
 			}),
 		]);
@@ -85,7 +85,7 @@ describe("withFileMutationQueue", () => {
 		await Promise.all([
 			withFileMutationQueue(targetPath, async () => {
 				order.push("target:start");
-				await delay(30);
+				await delay(100);
 				order.push("target:end");
 			}),
 			withFileMutationQueue(symlinkPath, async () => {
@@ -109,11 +109,11 @@ describe("built-in edit and write tools", () => {
 				access,
 				readFile: async (path) => {
 					const buffer = await readFile(path);
-					await delay(30);
+					await delay(100);
 					return buffer;
 				},
 				writeFile: async (path, content) => {
-					await delay(30);
+					await delay(100);
 					await writeFile(path, content, "utf8");
 				},
 			},
@@ -138,11 +138,11 @@ describe("built-in edit and write tools", () => {
 				access,
 				readFile: async (path) => {
 					const buffer = await readFile(path);
-					await delay(30);
+					await delay(100);
 					return buffer;
 				},
 				writeFile: async (path, content) => {
-					await delay(30);
+					await delay(100);
 					await writeFile(path, content, "utf8");
 				},
 			},
@@ -151,7 +151,7 @@ describe("built-in edit and write tools", () => {
 			operations: {
 				mkdir: async () => {},
 				writeFile: async (path, content) => {
-					await delay(10);
+					await delay(30);
 					await writeFile(path, content, "utf8");
 				},
 			},
@@ -161,7 +161,7 @@ describe("built-in edit and write tools", () => {
 			path: filePath,
 			edits: [{ oldText: "original", newText: "edited" }],
 		});
-		await delay(5);
+		await delay(15);
 		const writePromise = writeTool.execute("call-2", {
 			path: filePath,
 			content: "replacement\n",
