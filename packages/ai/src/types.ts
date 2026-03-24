@@ -17,6 +17,7 @@ export type KnownApi =
 export type Api = KnownApi | (string & {});
 
 export type KnownProvider =
+	| "local"
 	| "amazon-bedrock"
 	| "anthropic"
 	| "google"
@@ -279,6 +280,10 @@ export interface OpenAICompletionsCompat {
 	vercelGatewayRouting?: VercelGatewayRouting;
 	/** Whether the provider supports the `strict` field in tool definitions. Default: true. */
 	supportsStrictMode?: boolean;
+	/** Whether the provider supports streaming. Default: true. */
+	supportsStreaming?: boolean;
+	/** Whether the provider supports tools. Default: true. */
+	supportsTools?: boolean;
 }
 
 /** Compatibility settings for OpenAI Responses APIs. */

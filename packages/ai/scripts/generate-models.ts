@@ -1497,6 +1497,26 @@ async function generateModels() {
 		}
 	}
 
+	const localModels: Model<"openai-completions">[] = [
+		{
+			id: "Llama3-8B-1.58-100B-tokens",
+			name: "Llama3 8B 1.58 100B Tokens (Local)",
+			api: "openai-completions",
+			provider: "local",
+			baseUrl: "http://127.0.0.1:8080/v1",
+			reasoning: false,
+			input: ["text"],
+			cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+			compat: {
+				supportsStreaming: false,
+				supportsTools: false,
+			},
+			contextWindow: 8192,
+			maxTokens: 512,
+		},
+	];
+	allModels.push(...localModels);
+
 	const azureOpenAiModels: Model<Api>[] = allModels
 		.filter((model) => model.provider === "openai" && model.api === "openai-responses")
 		.map((model) => ({
