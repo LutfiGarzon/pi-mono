@@ -1,4 +1,11 @@
 export {
+	type AskToolDetails,
+	type AskToolInput,
+	type AskToolOptions,
+	createAskTool,
+	createAskToolDefinition,
+} from "./ask.js";
+export {
 	type BashOperations,
 	type BashSpawnContext,
 	type BashSpawnHook,
@@ -43,6 +50,13 @@ export {
 	type LsToolOptions,
 } from "./ls.js";
 export {
+	type PlanToolDetails,
+	type PlanToolInput,
+	type PlanToolOptions,
+	createPlanTool,
+	createPlanToolDefinition,
+} from "./plan.js";
+export {
 	createReadTool,
 	createReadToolDefinition,
 	type ReadOperations,
@@ -70,18 +84,20 @@ export {
 
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import type { ToolDefinition } from "../extensions/types.js";
+import { createAskTool, createAskToolDefinition, type AskToolOptions } from "./ask.js";
 import { type BashToolOptions, createBashTool, createBashToolDefinition } from "./bash.js";
 import { createEditTool, createEditToolDefinition, type EditToolOptions } from "./edit.js";
 import { createFindTool, createFindToolDefinition, type FindToolOptions } from "./find.js";
 import { createGrepTool, createGrepToolDefinition, type GrepToolOptions } from "./grep.js";
 import { createLsTool, createLsToolDefinition, type LsToolOptions } from "./ls.js";
+import { createPlanTool, createPlanToolDefinition, type PlanToolOptions } from "./plan.js";
 import { createReadTool, createReadToolDefinition, type ReadToolOptions } from "./read.js";
 import { createWriteTool, createWriteToolDefinition, type WriteToolOptions } from "./write.js";
 
 export type Tool = AgentTool<any>;
 export type ToolDef = ToolDefinition<any, any>;
-export type ToolName = "read" | "bash" | "edit" | "write" | "grep" | "find" | "ls";
-export const allToolNames: Set<ToolName> = new Set(["read", "bash", "edit", "write", "grep", "find", "ls"]);
+export type ToolName = "read" | "bash" | "edit" | "write" | "grep" | "find" | "ls" | "plan" | "ask";
+export const allToolNames: Set<ToolName> = new Set(["read", "bash", "edit", "write", "grep", "find", "ls", "plan", "ask"]);
 
 export interface ToolsOptions {
 	read?: ReadToolOptions;
@@ -91,6 +107,8 @@ export interface ToolsOptions {
 	grep?: GrepToolOptions;
 	find?: FindToolOptions;
 	ls?: LsToolOptions;
+	plan?: PlanToolOptions;
+	ask?: AskToolOptions;
 }
 
 export function createToolDefinition(toolName: ToolName, cwd: string, options?: ToolsOptions): ToolDef {
@@ -109,8 +127,12 @@ export function createToolDefinition(toolName: ToolName, cwd: string, options?: 
 			return createFindToolDefinition(cwd, options?.find);
 		case "ls":
 			return createLsToolDefinition(cwd, options?.ls);
+		case "plan":
+			return createPlanToolDefinition(cwd, options?.plan);
+		case "ask":
+			return createAskToolDefinition(cwd, options?.ask);
 		default:
-			throw new Error(`Unknown tool name: ${toolName}`);
+			throw new Error(\`Unknown tool name: \${toolName}\`);
 	}
 }
 
@@ -130,8 +152,12 @@ export function createTool(toolName: ToolName, cwd: string, options?: ToolsOptio
 			return createFindTool(cwd, options?.find);
 		case "ls":
 			return createLsTool(cwd, options?.ls);
+		case "plan":
+			return createPlanTool(cwd, options?.plan);
+		case "ask":
+			return createAskTool(cwd, options?.ask);
 		default:
-			throw new Error(`Unknown tool name: ${toolName}`);
+			throw new Error(\`Unknown tool name: \${toolName}\`);
 	}
 }
 
@@ -141,6 +167,8 @@ export function createCodingToolDefinitions(cwd: string, options?: ToolsOptions)
 		createBashToolDefinition(cwd, options?.bash),
 		createEditToolDefinition(cwd, options?.edit),
 		createWriteToolDefinition(cwd, options?.write),
+		createPlanToolDefinition(cwd, options?.plan),
+		createAskToolDefinition(cwd, options?.ask),
 	];
 }
 
@@ -162,6 +190,8 @@ export function createAllToolDefinitions(cwd: string, options?: ToolsOptions): R
 		grep: createGrepToolDefinition(cwd, options?.grep),
 		find: createFindToolDefinition(cwd, options?.find),
 		ls: createLsToolDefinition(cwd, options?.ls),
+		plan: createPlanToolDefinition(cwd, options?.plan),
+		ask: createAskToolDefinition(cwd, options?.ask),
 	};
 }
 
@@ -171,6 +201,8 @@ export function createCodingTools(cwd: string, options?: ToolsOptions): Tool[] {
 		createBashTool(cwd, options?.bash),
 		createEditTool(cwd, options?.edit),
 		createWriteTool(cwd, options?.write),
+		createPlanTool(cwd, options?.plan),
+		createAskTool(cwd, options?.ask),
 	];
 }
 
@@ -192,5 +224,7 @@ export function createAllTools(cwd: string, options?: ToolsOptions): Record<Tool
 		grep: createGrepTool(cwd, options?.grep),
 		find: createFindTool(cwd, options?.find),
 		ls: createLsTool(cwd, options?.ls),
+		plan: createPlanTool(cwd, options?.plan),
+		ask: createAskTool(cwd, options?.ask),
 	};
 }
