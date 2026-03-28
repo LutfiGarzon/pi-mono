@@ -212,9 +212,6 @@ export {
 export { createSyntheticSourceInfo } from "./core/source-info.js";
 // Tools
 export {
-	type AskToolInput,
-	askTool,
-	askToolDefinition,
 	type BashOperations,
 	type BashSpawnContext,
 	type BashSpawnHook,
@@ -224,8 +221,6 @@ export {
 	bashTool,
 	bashToolDefinition,
 	codingTools,
-	createAskTool,
-	createAskToolDefinition,
 	createBashTool,
 	createBashToolDefinition,
 	createEditTool,
@@ -237,8 +232,6 @@ export {
 	createLocalBashOperations,
 	createLsTool,
 	createLsToolDefinition,
-	createPlanTool,
-	createPlanToolDefinition,
 	createReadTool,
 	createReadToolDefinition,
 	createWriteTool,
@@ -270,9 +263,6 @@ export {
 	type LsToolOptions,
 	lsTool,
 	lsToolDefinition,
-	type PlanToolInput,
-	planTool,
-	planToolDefinition,
 	type ReadOperations,
 	type ReadToolDetails,
 	type ReadToolInput,

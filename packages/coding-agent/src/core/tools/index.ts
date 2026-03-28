@@ -1,11 +1,4 @@
 export {
-	type AskToolInput,
-	askTool,
-	askToolDefinition,
-	createAskTool,
-	createAskToolDefinition,
-} from "./ask.js";
-export {
 	type BashOperations,
 	type BashSpawnContext,
 	type BashSpawnHook,
@@ -60,13 +53,6 @@ export {
 	lsToolDefinition,
 } from "./ls.js";
 export {
-	createPlanTool,
-	createPlanToolDefinition,
-	type PlanToolInput,
-	planTool,
-	planToolDefinition,
-} from "./plan.js";
-export {
 	createReadTool,
 	createReadToolDefinition,
 	type ReadOperations,
@@ -98,7 +84,6 @@ export {
 
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import type { ToolDefinition } from "../extensions/types.js";
-import { askTool, askToolDefinition, createAskTool, createAskToolDefinition } from "./ask.js";
 import {
 	type BashToolOptions,
 	bashTool,
@@ -110,7 +95,6 @@ import { createEditTool, createEditToolDefinition, editTool, editToolDefinition 
 import { createFindTool, createFindToolDefinition, findTool, findToolDefinition } from "./find.js";
 import { createGrepTool, createGrepToolDefinition, grepTool, grepToolDefinition } from "./grep.js";
 import { createLsTool, createLsToolDefinition, lsTool, lsToolDefinition } from "./ls.js";
-import { createPlanTool, createPlanToolDefinition, planTool, planToolDefinition } from "./plan.js";
 import {
 	createReadTool,
 	createReadToolDefinition,
@@ -123,7 +107,7 @@ import { createWriteTool, createWriteToolDefinition, writeTool, writeToolDefinit
 export type Tool = AgentTool<any>;
 export type ToolDef = ToolDefinition<any, any>;
 
-export const codingTools: Tool[] = [readTool, bashTool, editTool, writeTool, planTool, askTool];
+export const codingTools: Tool[] = [readTool, bashTool, editTool, writeTool];
 export const readOnlyTools: Tool[] = [readTool, grepTool, findTool, lsTool];
 
 export const allTools = {
@@ -134,8 +118,6 @@ export const allTools = {
 	grep: grepTool,
 	find: findTool,
 	ls: lsTool,
-	plan: planTool,
-	ask: askTool,
 };
 
 export const allToolDefinitions = {
@@ -146,8 +128,6 @@ export const allToolDefinitions = {
 	grep: grepToolDefinition,
 	find: findToolDefinition,
 	ls: lsToolDefinition,
-	plan: planToolDefinition,
-	ask: askToolDefinition,
 };
 
 export type ToolName = keyof typeof allTools;
@@ -163,8 +143,6 @@ export function createCodingToolDefinitions(cwd: string, options?: ToolsOptions)
 		createBashToolDefinition(cwd, options?.bash),
 		createEditToolDefinition(cwd),
 		createWriteToolDefinition(cwd),
-		createPlanToolDefinition(cwd),
-		createAskToolDefinition(),
 	];
 }
 
@@ -186,8 +164,6 @@ export function createAllToolDefinitions(cwd: string, options?: ToolsOptions): R
 		grep: createGrepToolDefinition(cwd),
 		find: createFindToolDefinition(cwd),
 		ls: createLsToolDefinition(cwd),
-		plan: createPlanToolDefinition(cwd),
-		ask: createAskToolDefinition(),
 	};
 }
 
@@ -197,8 +173,6 @@ export function createCodingTools(cwd: string, options?: ToolsOptions): Tool[] {
 		createBashTool(cwd, options?.bash),
 		createEditTool(cwd),
 		createWriteTool(cwd),
-		createPlanTool(cwd),
-		createAskTool(),
 	];
 }
 
@@ -215,7 +189,5 @@ export function createAllTools(cwd: string, options?: ToolsOptions): Record<Tool
 		grep: createGrepTool(cwd),
 		find: createFindTool(cwd),
 		ls: createLsTool(cwd),
-		plan: createPlanTool(cwd),
-		ask: createAskTool(),
 	};
 }

@@ -16,17 +16,14 @@ import { SettingsManager } from "./settings-manager.js";
 import { time } from "./timings.js";
 import {
 	allTools,
-	askTool,
 	bashTool,
 	codingTools,
-	createAskTool,
 	createBashTool,
 	createCodingTools,
 	createEditTool,
 	createFindTool,
 	createGrepTool,
 	createLsTool,
-	createPlanTool,
 	createReadOnlyTools,
 	createReadTool,
 	createWriteTool,
@@ -34,7 +31,6 @@ import {
 	findTool,
 	grepTool,
 	lsTool,
-	planTool,
 	readOnlyTools,
 	readTool,
 	type Tool,
@@ -110,8 +106,6 @@ export {
 	grepTool,
 	findTool,
 	lsTool,
-	planTool,
-	askTool,
 	codingTools,
 	readOnlyTools,
 	allTools as allBuiltInTools,
@@ -126,8 +120,6 @@ export {
 	createGrepTool,
 	createFindTool,
 	createLsTool,
-	createPlanTool,
-	createAskTool,
 };
 
 // Helper Functions
@@ -247,7 +239,7 @@ export async function createAgentSession(options: CreateAgentSessionOptions = {}
 		thinkingLevel = "off";
 	}
 
-	const defaultActiveToolNames: ToolName[] = ["read", "bash", "edit", "write", "plan", "ask"];
+	const defaultActiveToolNames: ToolName[] = ["read", "bash", "edit", "write"];
 	const initialActiveToolNames: ToolName[] = options.tools
 		? options.tools.map((t) => t.name).filter((n): n is ToolName => n in allTools)
 		: defaultActiveToolNames;
