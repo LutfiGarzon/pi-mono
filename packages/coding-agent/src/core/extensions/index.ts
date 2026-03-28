@@ -31,8 +31,6 @@ export type {
 	AppKeybinding,
 	AutocompleteProviderFactory,
 	// Events - Tool (ToolCallEvent types)
-	AskToolCallEvent,
-	AskToolResultEvent,
 	BashToolCallEvent,
 	BashToolResultEvent,
 	BeforeAgentStartEvent,
@@ -100,8 +98,6 @@ export type {
 	MessageUpdateEvent,
 	ModelSelectEvent,
 	ModelSelectSource,
-	PlanToolCallEvent,
-	PlanToolResultEvent,
 	// Provider Registration
 	ProviderConfig,
 	ProviderModelConfig,
@@ -165,13 +161,11 @@ export type {
 // Type guards
 export {
 	defineTool,
-	isAskToolResult,
 	isBashToolResult,
 	isEditToolResult,
 	isFindToolResult,
 	isGrepToolResult,
 	isLsToolResult,
-	isPlanToolResult,
 	isReadToolResult,
 	isToolCallEventType,
 	isWriteToolResult,
