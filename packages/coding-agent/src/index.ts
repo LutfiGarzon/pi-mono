@@ -157,20 +157,14 @@ export type { ResourceCollision, ResourceDiagnostic, ResourceLoader } from "./co
 export { DefaultResourceLoader } from "./core/resource-loader.js";
 // SDK for programmatic usage
 export {
+	allBuiltInTools,
 	type CreateAgentSessionOptions,
 	type CreateAgentSessionResult,
 	// Factory
 	createAgentSession,
-	createBashTool,
 	// Tool factories (for custom cwd)
 	createCodingTools,
-	createEditTool,
-	createFindTool,
-	createGrepTool,
-	createLsTool,
 	createReadOnlyTools,
-	createReadTool,
-	createWriteTool,
 	type PromptTemplate,
 	// Pre-built tools (use process.cwd())
 	readOnlyTools,
@@ -218,6 +212,9 @@ export {
 export { createSyntheticSourceInfo } from "./core/source-info.js";
 // Tools
 export {
+	type AskToolInput,
+	askTool,
+	askToolDefinition,
 	type BashOperations,
 	type BashSpawnContext,
 	type BashSpawnHook,
@@ -227,13 +224,24 @@ export {
 	bashTool,
 	bashToolDefinition,
 	codingTools,
+	createAskTool,
+	createAskToolDefinition,
+	createBashTool,
 	createBashToolDefinition,
+	createEditTool,
 	createEditToolDefinition,
+	createFindTool,
 	createFindToolDefinition,
+	createGrepTool,
 	createGrepToolDefinition,
 	createLocalBashOperations,
+	createLsTool,
 	createLsToolDefinition,
+	createPlanTool,
+	createPlanToolDefinition,
+	createReadTool,
 	createReadToolDefinition,
+	createWriteTool,
 	createWriteToolDefinition,
 	DEFAULT_MAX_BYTES,
 	DEFAULT_MAX_LINES,
@@ -262,6 +270,9 @@ export {
 	type LsToolOptions,
 	lsTool,
 	lsToolDefinition,
+	type PlanToolInput,
+	planTool,
+	planToolDefinition,
 	type ReadOperations,
 	type ReadToolDetails,
 	type ReadToolInput,
