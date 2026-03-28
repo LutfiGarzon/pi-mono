@@ -7,35 +7,20 @@
  * Features:
  * - /plan command or Ctrl+Alt+P to toggle
  * - Bash restricted to allowlisted read-only commands
- * - Extracts numbered plan steps from "Plan:" sections
- * - [DONE:n] markers to complete steps during execution
+ * - Uses .pi/plan/*.md to track checklists
  * - Progress tracking widget during execution
  */
 
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { AssistantMessage, TextContent } from "@mariozechner/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import { Key } from "@mariozechner/pi-tui";
 import { registerAskTool } from "./ask-tool.js";
 import { registerPlanTool } from "./plan-tool.js";
-import { extractTodoItems, isSafeCommand, markCompletedSteps, type TodoItem } from "./utils.js";
+import { getLatestPlanFile, isSafeCommand, parsePlanFile, type TodoItem } from "./utils.js";
 
 // Tools
-const PLAN_MODE_TOOLS = ["read", "bash", "grep", "find", "ls", "questionnaire", "ask", "plan"];
+const PLAN_MODE_TOOLS = ["read", "bash", "grep", "find", "ls", "ask", "plan"];
 const NORMAL_MODE_TOOLS = ["read", "bash", "edit", "write", "ask", "plan"];
-
-// Type guard for assistant messages
-function isAssistantMessage(m: AgentMessage): m is AssistantMessage {
-	return m.role === "assistant" && Array.isArray(m.content);
-}
-
-// Extract text content from an assistant message
-function getTextContent(message: AssistantMessage): string {
-	return message.content
-		.filter((block): block is TextContent => block.type === "text")
-		.map((block) => block.text)
-		.join("\n");
-}
 
 export default function planModeExtension(pi: ExtensionAPI): void {
 	let planModeEnabled = false;
@@ -101,6 +86,15 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 		});
 	}
 
+	async function reloadPlanFromDisk(cwd: string): Promise<boolean> {
+		const latestPlan = await getLatestPlanFile(cwd);
+		if (latestPlan) {
+			todoItems = await parsePlanFile(latestPlan);
+			return true;
+		}
+		return false;
+	}
+
 	pi.registerCommand("plan", {
 		description: "Toggle plan mode (read-only exploration)",
 		handler: async (_args, ctx) => togglePlanMode(ctx),
@@ -109,8 +103,9 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 	pi.registerCommand("todos", {
 		description: "Show current plan todo list",
 		handler: async (_args, ctx) => {
+			await reloadPlanFromDisk(ctx.cwd);
 			if (todoItems.length === 0) {
-				ctx.ui.notify("No todos. Create a plan first with /plan", "info");
+				ctx.ui.notify("No todos. Create a plan first using the plan tool in plan mode.", "info");
 				return;
 			}
 			const list = todoItems.map((item, i) => `${i + 1}. ${item.completed ? "✓" : "○"} ${item.text}`).join("\n");
@@ -143,25 +138,18 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 		return {
 			messages: event.messages.filter((m) => {
 				const msg = m as AgentMessage & { customType?: string };
-				if (msg.customType === "plan-mode-context") return false;
-				if (msg.role !== "user") return true;
-
-				const content = msg.content;
-				if (typeof content === "string") {
-					return !content.includes("[PLAN MODE ACTIVE]");
-				}
-				if (Array.isArray(content)) {
-					return !content.some(
-						(c) => c.type === "text" && (c as TextContent).text?.includes("[PLAN MODE ACTIVE]"),
-					);
-				}
+				if (msg.customType === "plan-mode-context" || msg.customType === "plan-execution-context") return false;
 				return true;
 			}),
 		};
 	});
 
 	// Inject plan/execution context before agent starts
-	pi.on("before_agent_start", async () => {
+	pi.on("before_agent_start", async (_event, ctx) => {
+		// Update the plan state from disk in case it was manually modified or changed by tool
+		await reloadPlanFromDisk(ctx.cwd);
+		updateStatus(ctx);
+
 		if (planModeEnabled) {
 			return {
 				message: {
@@ -170,20 +158,15 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 You are in plan mode - a read-only exploration mode for safe code analysis.
 
 Restrictions:
-- You can only use: read, bash, grep, find, ls, questionnaire, ask, plan
+- You can only use: read, bash, grep, find, ls, ask, plan
 - You CANNOT use: edit, write (file modifications are disabled)
 - Bash is restricted to an allowlist of read-only commands
 
-Use the ask tool for multiple-choice questions or explicit direction.
-Use the plan tool to create/update checklists in .pi/plan/.
+Use the \`ask\` tool for multiple-choice questions or explicit direction.
+Use the \`plan\` tool to create/update checklists in .pi/plan/.
 Use brave-search skill via bash for web research.
 
-Create a detailed numbered plan under a "Plan:" header:
-
-Plan:
-1. First step description
-2. Second step description
-...
+Create a detailed numbered plan using the \`plan\` tool. Do not just print it in your response.
 
 Do NOT attempt to make changes - just describe what you would do.`,
 					display: false,
@@ -203,7 +186,7 @@ Remaining steps:
 ${todoList}
 
 Execute each step in order.
-After completing a step, include a [DONE:n] tag in your response.`,
+After completing a step, use the \`plan\` tool to update the checklist.`,
 					display: false,
 				},
 			};
@@ -211,19 +194,21 @@ After completing a step, include a [DONE:n] tag in your response.`,
 	});
 
 	// Track progress after each turn
-	pi.on("turn_end", async (event, ctx) => {
-		if (!executionMode || todoItems.length === 0) return;
-		if (!isAssistantMessage(event.message)) return;
-
-		const text = getTextContent(event.message);
-		if (markCompletedSteps(text, todoItems) > 0) {
-			updateStatus(ctx);
+	pi.on("turn_end", async (_event, ctx) => {
+		if (executionMode) {
+			const planChanged = await reloadPlanFromDisk(ctx.cwd);
+			if (planChanged) {
+				updateStatus(ctx);
+				persistState();
+			}
 		}
-		persistState();
 	});
 
 	// Handle plan completion and plan mode UI
-	pi.on("agent_end", async (event, ctx) => {
+	pi.on("agent_end", async (_event, ctx) => {
+		// Ensure the UI is updated at the end of the agent's run
+		await reloadPlanFromDisk(ctx.cwd);
+
 		// Check if execution is complete
 		if (executionMode && todoItems.length > 0) {
 			if (todoItems.every((t) => t.completed)) {
@@ -243,22 +228,13 @@ After completing a step, include a [DONE:n] tag in your response.`,
 
 		if (!planModeEnabled || !ctx.hasUI) return;
 
-		// Extract todos from last assistant message
-		const lastAssistant = [...event.messages].reverse().find(isAssistantMessage);
-		if (lastAssistant) {
-			const extracted = extractTodoItems(getTextContent(lastAssistant));
-			if (extracted.length > 0) {
-				todoItems = extracted;
-			}
-		}
-
 		// Show plan steps and prompt for next action
 		if (todoItems.length > 0) {
 			const todoListText = todoItems.map((t, i) => `${i + 1}. ☐ ${t.text}`).join("\n");
 			pi.sendMessage(
 				{
 					customType: "plan-todo-list",
-					content: `**Plan Steps (${todoItems.length}):**\n\n${todoListText}`,
+					content: `**Current Plan Steps (${todoItems.length}):**\n\n${todoListText}`,
 					display: true,
 				},
 				{ triggerTurn: false },
@@ -308,35 +284,11 @@ After completing a step, include a [DONE:n] tag in your response.`,
 
 		if (planModeEntry?.data) {
 			planModeEnabled = planModeEntry.data.enabled ?? planModeEnabled;
-			todoItems = planModeEntry.data.todos ?? todoItems;
 			executionMode = planModeEntry.data.executing ?? executionMode;
 		}
 
-		// On resume: re-scan messages to rebuild completion state
-		// Only scan messages AFTER the last "plan-mode-execute" to avoid picking up [DONE:n] from previous plans
-		const isResume = planModeEntry !== undefined;
-		if (isResume && executionMode && todoItems.length > 0) {
-			// Find the index of the last plan-mode-execute entry (marks when current execution started)
-			let executeIndex = -1;
-			for (let i = entries.length - 1; i >= 0; i--) {
-				const entry = entries[i] as { type: string; customType?: string };
-				if (entry.customType === "plan-mode-execute") {
-					executeIndex = i;
-					break;
-				}
-			}
-
-			// Only scan messages after the execute marker
-			const messages: AssistantMessage[] = [];
-			for (let i = executeIndex + 1; i < entries.length; i++) {
-				const entry = entries[i];
-				if (entry.type === "message" && "message" in entry && isAssistantMessage(entry.message as AgentMessage)) {
-					messages.push(entry.message as AssistantMessage);
-				}
-			}
-			const allText = messages.map(getTextContent).join("\n");
-			markCompletedSteps(allText, todoItems);
-		}
+		// Always hydrate from disk on startup
+		await reloadPlanFromDisk(ctx.cwd);
 
 		if (planModeEnabled) {
 			pi.setActiveTools(PLAN_MODE_TOOLS);
