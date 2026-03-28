@@ -129,6 +129,9 @@ export function getShellEnv(): NodeJS.ProcessEnv {
 	return {
 		...process.env,
 		[pathKey]: updatedPath,
+		DEBIAN_FRONTEND: "noninteractive",
+		CI: "true",
+		GIT_TERMINAL_PROMPT: "0",
 	};
 }
 
