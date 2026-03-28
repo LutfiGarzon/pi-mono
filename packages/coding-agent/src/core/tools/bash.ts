@@ -97,9 +97,29 @@ export function createLocalBashOperations(options?: { shellPath?: string }): Bas
 						if (child.pid) killProcessTree(child.pid);
 					}, timeout * 1000);
 				}
+
+				let idleTimedOut = false;
+				let idleTimeoutHandle: NodeJS.Timeout | undefined;
+				const IDLE_TIMEOUT_MS = 120000; // 2 minutes
+
+				const resetIdleTimeout = () => {
+					if (idleTimeoutHandle) clearTimeout(idleTimeoutHandle);
+					idleTimeoutHandle = setTimeout(() => {
+						idleTimedOut = true;
+						if (child.pid) killProcessTree(child.pid);
+					}, IDLE_TIMEOUT_MS);
+				};
+
+				resetIdleTimeout();
+
+				const handleData = (data: Buffer) => {
+					resetIdleTimeout();
+					onData(data);
+				};
+
 				// Stream stdout and stderr.
-				child.stdout?.on("data", onData);
-				child.stderr?.on("data", onData);
+				child.stdout?.on("data", handleData);
+				child.stderr?.on("data", handleData);
 				// Handle abort signal by killing the entire process tree.
 				const onAbort = () => {
 					if (child.pid) killProcessTree(child.pid);
@@ -114,6 +134,7 @@ export function createLocalBashOperations(options?: { shellPath?: string }): Bas
 					.then((code) => {
 						if (child.pid) untrackDetachedChildPid(child.pid);
 						if (timeoutHandle) clearTimeout(timeoutHandle);
+						if (idleTimeoutHandle) clearTimeout(idleTimeoutHandle);
 						if (signal) signal.removeEventListener("abort", onAbort);
 						if (signal?.aborted) {
 							reject(new Error("aborted"));
@@ -123,11 +144,16 @@ export function createLocalBashOperations(options?: { shellPath?: string }): Bas
 							reject(new Error(`timeout:${timeout}`));
 							return;
 						}
+						if (idleTimedOut) {
+							reject(new Error(`idle_timeout:${IDLE_TIMEOUT_MS / 1000}`));
+							return;
+						}
 						resolve({ exitCode: code });
 					})
 					.catch((err) => {
 						if (child.pid) untrackDetachedChildPid(child.pid);
 						if (timeoutHandle) clearTimeout(timeoutHandle);
+						if (idleTimeoutHandle) clearTimeout(idleTimeoutHandle);
 						if (signal) signal.removeEventListener("abort", onAbort);
 						reject(err);
 					});
@@ -282,6 +308,12 @@ export function createBashToolDefinition(
 		label: "bash",
 		description: `Execute a bash command in the current working directory. Returns stdout and stderr. Output is truncated to last ${DEFAULT_MAX_LINES} lines or ${DEFAULT_MAX_BYTES / 1024}KB (whichever is hit first). If truncated, full output is saved to a temp file. Optionally provide a timeout in seconds.`,
 		promptSnippet: "Execute bash commands (ls, grep, find, etc.)",
+		promptGuidelines: [
+			"Never run interactive commands (vim, nano, less).",
+			"Always use non-interactive flags (e.g., -y for apt, --no-prompt).",
+			"For git commands that open editors (commit, rebase), prepend GIT_EDITOR=true",
+			"For long-running servers, append '&' to run in the background and redirect output to a file.",
+		],
 		parameters: bashSchema,
 		async execute(
 			_toolCallId,
@@ -398,6 +430,11 @@ export function createBashToolDefinition(
 							const timeoutSecs = err.message.split(":")[1];
 							if (output) output += "\n\n";
 							output += `Command timed out after ${timeoutSecs} seconds`;
+							reject(new Error(output));
+						} else if (err.message.startsWith("idle_timeout:")) {
+							const idleSecs = err.message.split(":")[1];
+							if (output) output += "\n\n";
+							output += `Command aborted: No output received for ${idleSecs} seconds. If this is a server or interactive prompt, run it in the background or use non-interactive flags (e.g., GIT_EDITOR=true).`;
 							reject(new Error(output));
 						} else {
 							reject(err);
