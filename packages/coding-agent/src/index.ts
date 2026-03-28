@@ -224,17 +224,12 @@ export {
 export { createSyntheticSourceInfo } from "./core/source-info.js";
 // Tools
 export {
-	type AskToolDetails,
-	type AskToolInput,
-	type AskToolOptions,
 	type BashOperations,
 	type BashSpawnContext,
 	type BashSpawnHook,
 	type BashToolDetails,
 	type BashToolInput,
 	type BashToolOptions,
-	createAskTool,
-	createAskToolDefinition,
 	createBashTool,
 	createBashToolDefinition,
 	createEditTool,
@@ -246,8 +241,6 @@ export {
 	createLocalBashOperations,
 	createLsTool,
 	createLsToolDefinition,
-	createPlanTool,
-	createPlanToolDefinition,
 	createReadTool,
 	createReadToolDefinition,
 	createWriteTool,
@@ -271,9 +264,6 @@ export {
 	type LsToolDetails,
 	type LsToolInput,
 	type LsToolOptions,
-	type PlanToolDetails,
-	type PlanToolInput,
-	type PlanToolOptions,
 	type ReadOperations,
 	type ReadToolDetails,
 	type ReadToolInput,
@@ -289,6 +279,7 @@ export {
 	type WriteToolOptions,
 	withFileMutationQueue,
 } from "./core/tools/index.js";
+
 // Main entry point
 export { type MainOptions, main } from "./main.js";
 // Run modes for programmatic SDK usage

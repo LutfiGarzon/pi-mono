@@ -61,7 +61,6 @@ import type { BuildSystemPromptOptions } from "../system-prompt.js";
 import type { BashOperations } from "../tools/bash.js";
 import type { EditToolDetails } from "../tools/edit.js";
 import type {
-	AskToolInput,
 	BashToolDetails,
 	BashToolInput,
 	EditToolInput,
@@ -71,7 +70,6 @@ import type {
 	GrepToolInput,
 	LsToolDetails,
 	LsToolInput,
-	PlanToolInput,
 	ReadToolDetails,
 	ReadToolInput,
 	WriteToolInput,
@@ -767,16 +765,6 @@ export interface LsToolCallEvent extends ToolCallEventBase {
 	input: LsToolInput;
 }
 
-export interface PlanToolCallEvent extends ToolCallEventBase {
-	toolName: "plan";
-	input: PlanToolInput;
-}
-
-export interface AskToolCallEvent extends ToolCallEventBase {
-	toolName: "ask";
-	input: AskToolInput;
-}
-
 export interface CustomToolCallEvent extends ToolCallEventBase {
 	toolName: string;
 	input: Record<string, unknown>;
@@ -796,8 +784,6 @@ export type ToolCallEvent =
 	| GrepToolCallEvent
 	| FindToolCallEvent
 	| LsToolCallEvent
-	| PlanToolCallEvent
-	| AskToolCallEvent
 	| CustomToolCallEvent;
 
 interface ToolResultEventBase {
@@ -843,16 +829,6 @@ export interface LsToolResultEvent extends ToolResultEventBase {
 	details: LsToolDetails | undefined;
 }
 
-export interface PlanToolResultEvent extends ToolResultEventBase {
-	toolName: "plan";
-	details: undefined;
-}
-
-export interface AskToolResultEvent extends ToolResultEventBase {
-	toolName: "ask";
-	details: undefined;
-}
-
 export interface CustomToolResultEvent extends ToolResultEventBase {
 	toolName: string;
 	details: unknown;
@@ -867,8 +843,6 @@ export type ToolResultEvent =
 	| GrepToolResultEvent
 	| FindToolResultEvent
 	| LsToolResultEvent
-	| PlanToolResultEvent
-	| AskToolResultEvent
 	| CustomToolResultEvent;
 
 // Type guards for ToolResultEvent
@@ -892,12 +866,6 @@ export function isFindToolResult(e: ToolResultEvent): e is FindToolResultEvent {
 }
 export function isLsToolResult(e: ToolResultEvent): e is LsToolResultEvent {
 	return e.toolName === "ls";
-}
-export function isPlanToolResult(e: ToolResultEvent): e is PlanToolResultEvent {
-	return e.toolName === "plan";
-}
-export function isAskToolResult(e: ToolResultEvent): e is AskToolResultEvent {
-	return e.toolName === "ask";
 }
 
 /**
@@ -927,8 +895,6 @@ export function isToolCallEventType(toolName: "write", event: ToolCallEvent): ev
 export function isToolCallEventType(toolName: "grep", event: ToolCallEvent): event is GrepToolCallEvent;
 export function isToolCallEventType(toolName: "find", event: ToolCallEvent): event is FindToolCallEvent;
 export function isToolCallEventType(toolName: "ls", event: ToolCallEvent): event is LsToolCallEvent;
-export function isToolCallEventType(toolName: "plan", event: ToolCallEvent): event is PlanToolCallEvent;
-export function isToolCallEventType(toolName: "ask", event: ToolCallEvent): event is AskToolCallEvent;
 export function isToolCallEventType<TName extends string, TInput extends Record<string, unknown>>(
 	toolName: TName,
 	event: ToolCallEvent,

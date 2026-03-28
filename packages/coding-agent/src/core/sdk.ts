@@ -23,7 +23,6 @@ import {
 	createFindTool,
 	createGrepTool,
 	createLsTool,
-	createPlanTool,
 	createReadOnlyTools,
 	createReadTool,
 	createWriteTool,
