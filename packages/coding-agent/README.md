@@ -298,6 +298,16 @@ Pi includes a built-in `plan` and `ask` tool for structured execution of complex
 
 ---
 
+## Bash Tool Safety
+
+To prevent the agent from getting stuck on interactive commands or long-running processes, pi's `bash` tool includes several safety mechanisms:
+
+- **Idle Watchdog:** If a command produces no output for 120 seconds, it is automatically aborted.
+- **Non-Interactive Environment:** Commands are executed with `DEBIAN_FRONTEND=noninteractive`, `CI=true`, `GIT_TERMINAL_PROMPT=0`, and `GIT_EDITOR=true` to suppress interactive prompts and editors.
+- **Background Execution:** Guidelines instruct the model to run long-running servers in the background using `&`.
+
+---
+
 ## Customization
 
 ### Prompt Templates

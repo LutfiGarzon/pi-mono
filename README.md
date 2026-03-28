@@ -65,6 +65,12 @@ npm run check        # Lint, format, and type check
 ./pi-test.sh         # Run pi from sources (can be run from any directory)
 ```
 
+To use your local development version as the global `pi` command:
+
+```bash
+npm link -ws --include-root # Link all packages and the monorepo root
+```
+
 > **Note:** `npm run check` requires `npm run build` to be run first. The web-ui package uses `tsc` which needs compiled `.d.ts` files from dependencies.
 
 ## License
