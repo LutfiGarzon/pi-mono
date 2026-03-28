@@ -1,13 +1,8 @@
-import type { AgentTool } from "@mariozechner/pi-agent-core";
+import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { Spacer, Text } from "@mariozechner/pi-tui";
 import { type Static, Type } from "@sinclair/typebox";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { keyHint } from "../../modes/interactive/components/keybinding-hints.js";
-import { theme } from "../../modes/interactive/theme/theme.js";
-import type { ToolDefinition } from "../extensions/types.js";
-import { invalidArgText, str } from "./render-utils.js";
-import { wrapToolDefinition } from "./tool-definition-wrapper.js";
 
 const planTaskSchema = Type.Object({
 	description: Type.String({ description: "The task description" }),
@@ -41,48 +36,23 @@ function generateMarkdown(objective: string, tasks: Static<typeof planTaskSchema
 	return md;
 }
 
-function formatPlanCall(args: Partial<PlanToolInput> | undefined): string {
-	const objective = str(args?.objective);
-	const action = str(args?.action);
-	const invalidArg = invalidArgText(theme);
-
-	return (
-		theme.fg("toolTitle", theme.bold("plan")) +
-		" " +
-		(objective === null ? invalidArg : theme.fg("accent", objective)) +
-		theme.fg("toolOutput", ` (${action === null ? invalidArg : action})`)
-	);
+function str(value: any): string | null {
+	if (value === undefined || value === null) return null;
+	return String(value);
 }
 
-function formatPlanResult(args: Partial<PlanToolInput> | undefined, expanded: boolean): string {
-	const tasks = args?.tasks;
-	if (!tasks || !Array.isArray(tasks)) return "";
-
-	const maxTasks = expanded ? tasks.length : 5;
-	const displayTasks = tasks.slice(0, maxTasks);
-	const remaining = tasks.length - maxTasks;
-
-	let text = displayTasks
-		.map((t) => theme.fg("toolOutput", `${t.status === "completed" ? "[x]" : "[ ]"} ${t.description}`))
-		.join("\n");
-	if (remaining > 0) {
-		text += `\n${theme.fg("muted", `... (${remaining} more tasks,`)} ${keyHint("app.tools.expand", "to expand")})`;
-	}
-	return text;
-}
-
-export function createPlanToolDefinition(cwd: string): ToolDefinition<typeof planSchema, undefined> {
-	return {
+export function registerPlanTool(pi: ExtensionAPI): void {
+	pi.registerTool({
 		name: "plan",
 		label: "plan",
 		description: "Track objectives and their required tasks using a checklist. Saves to .pi/plan/ directory.",
 		promptSnippet: "Track objectives and their required tasks using a checklist",
 		parameters: planSchema,
-		execute: async (_toolCallId: string, input: PlanToolInput, signal?: AbortSignal) => {
+		execute: async (_toolCallId: string, input: PlanToolInput, signal?: AbortSignal, _onUpdate?, ctx?) => {
 			if (signal?.aborted) {
 				throw new Error("Operation aborted");
 			}
-
+			const cwd = ctx?.cwd ?? process.cwd();
 			const planDir = path.join(cwd, ".pi", "plan");
 			await mkdir(planDir, { recursive: true });
 
@@ -106,26 +76,42 @@ export function createPlanToolDefinition(cwd: string): ToolDefinition<typeof pla
 				details: undefined,
 			};
 		},
-		renderCall(args, _theme, context) {
+		renderCall(_args, theme, context) {
 			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
-			text.setText(formatPlanCall(args));
+			const args = context.args as Partial<PlanToolInput> | undefined;
+			const objective = str(args?.objective);
+			const action = str(args?.action);
+			const invalidArg = theme.fg("error", "???");
+
+			text.setText(
+				theme.fg("toolTitle", theme.bold("plan")) +
+					" " +
+					(objective === null ? invalidArg : theme.fg("accent", objective)) +
+					theme.fg("toolOutput", ` (${action === null ? invalidArg : action})`),
+			);
 			return text;
 		},
-		renderResult(_result, options, _theme, context) {
-			const output = formatPlanResult(context.args, options.expanded);
-			if (!output) {
+		renderResult(_result, options, theme, context) {
+			const args = context.args as Partial<PlanToolInput> | undefined;
+			const tasks = args?.tasks;
+			if (!tasks || !Array.isArray(tasks)) {
 				return (context.lastComponent as Spacer | undefined) ?? new Spacer(0);
 			}
+
+			const maxTasks = options.expanded ? tasks.length : 5;
+			const displayTasks = tasks.slice(0, maxTasks);
+			const remaining = tasks.length - maxTasks;
+
+			let textStr = displayTasks
+				.map((t) => theme.fg("toolOutput", `${t.status === "completed" ? "[x]" : "[ ]"} ${t.description}`))
+				.join("\n");
+			if (remaining > 0) {
+				textStr += `\n${theme.fg("muted", `... (${remaining} more tasks, <ctrl+o> to expand)`)}`;
+			}
+
 			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
-			text.setText(`\n${output}`);
+			text.setText(`\n${textStr}`);
 			return text;
 		},
-	};
+	});
 }
-
-export function createPlanTool(cwd: string): AgentTool<typeof planSchema> {
-	return wrapToolDefinition(createPlanToolDefinition(cwd));
-}
-
-export const planToolDefinition = createPlanToolDefinition(process.cwd());
-export const planTool = createPlanTool(process.cwd());
