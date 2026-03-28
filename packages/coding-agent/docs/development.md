@@ -19,6 +19,17 @@ Run from source:
 
 The script can be run from any directory. Pi keeps the caller's current working directory.
 
+## Link for Global Use
+
+To use your local development version as the global `pi` command:
+
+```bash
+cd /path/to/pi-mono
+npm link -ws --include-root
+```
+
+This replaces any npm-installed global `pi` with a symlink to your local source code. Any changes you make in `packages/` followed by `npm run build` will be reflected immediately in your global `pi` command.
+
 ## Forking / Rebranding
 
 Configure via `package.json`:

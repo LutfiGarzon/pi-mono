@@ -123,6 +123,7 @@ export function getShellEnv(): NodeJS.ProcessEnv {
 		DEBIAN_FRONTEND: "noninteractive",
 		CI: "true",
 		GIT_TERMINAL_PROMPT: "0",
+		GIT_EDITOR: "true",
 	};
 }
 
