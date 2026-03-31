@@ -238,6 +238,12 @@ git pull --rebase && git push
 - If conflict is in a file you didn't modify, abort and ask the user
 - NEVER force push
 
+## Updating and Syncing with Upstream
+If the user asks to sync with upstream or update the global installation:
+1. Run `./update-pi.sh` from the root of the repository.
+2. This script handles `git fetch upstream`, `git rebase upstream/main`, `npm install`, `npm run build`, and `npm install -g` for the relevant packages.
+3. If conflicts occur during rebase, resolve them carefully, stage the changes, and `git rebase --continue`.
+
 ### User override
 
 If the user instructions conflict with rules set out here, ask for confirmation that they want to override the rules. Only then execute their instructions.
