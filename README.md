@@ -56,6 +56,7 @@ npm run build        # Build all packages
 npm run check        # Lint, format, and type check
 ./test.sh            # Run tests (skips LLM-dependent tests without API keys)
 ./pi-test.sh         # Run pi from sources (can be run from any directory)
+./update-pi.sh       # Sync with upstream, build, and update global installation
 ```
 
 ## Supply-chain hardening
