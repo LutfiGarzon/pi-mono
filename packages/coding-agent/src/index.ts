@@ -175,7 +175,6 @@ export {
 	createAgentSessionFromServices,
 	createAgentSessionRuntime,
 	createAgentSessionServices,
-	createBashTool,
 	// Tool factories (for custom cwd)
 	createCodingTools,
 	createReadOnlyTools,
