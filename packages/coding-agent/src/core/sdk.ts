@@ -16,7 +16,6 @@ import { SettingsManager } from "./settings-manager.js";
 import { isInstallTelemetryEnabled } from "./telemetry.js";
 import { time } from "./timings.js";
 import {
-
 	createBashTool,
 	createCodingTools,
 	createEditTool,
@@ -26,7 +25,6 @@ import {
 	createReadOnlyTools,
 	createReadTool,
 	createWriteTool,
-
 	type ToolName,
 	withFileMutationQueue,
 } from "./tools/index.js";
