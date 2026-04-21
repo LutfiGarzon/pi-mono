@@ -132,7 +132,7 @@ export function createToolDefinition(toolName: ToolName, cwd: string, options?: 
 		case "ask":
 			return createAskToolDefinition(cwd, options?.ask);
 		default:
-			throw new Error(\`Unknown tool name: \${toolName}\`);
+			throw new Error(`Unknown tool name: ${toolName}`);
 	}
 }
 
@@ -157,7 +157,7 @@ export function createTool(toolName: ToolName, cwd: string, options?: ToolsOptio
 		case "ask":
 			return createAskTool(cwd, options?.ask);
 		default:
-			throw new Error(\`Unknown tool name: \${toolName}\`);
+			throw new Error(`Unknown tool name: ${toolName}`);
 	}
 }
 
