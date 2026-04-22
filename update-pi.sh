@@ -4,8 +4,8 @@ set -e
 echo "🔄 Fetching upstream..."
 git fetch upstream
 
-echo "🔀 Rebasing onto upstream/main..."
-git rebase upstream/main
+echo "🔀 Merging upstream/main..."
+git merge upstream/main
 
 echo "📦 Installing dependencies..."
 npm install
