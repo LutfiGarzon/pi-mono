@@ -4,6 +4,8 @@
 ### Added
 - Added `plan` and `ask` to default built-in tools.
 
+## [0.69.0] - 2026-04-22
+
 ### New Features
 
 - TypeBox 1.x migration for extensions and SDK integrations, including TypeBox-native tool argument validation that now works in eval-restricted runtimes such as Cloudflare Workers. See [docs/extensions.md](docs/extensions.md) and [docs/sdk.md](docs/sdk.md).
