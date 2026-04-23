@@ -218,8 +218,7 @@ export function estimateContextTokens(messages: AgentMessage[]): ContextUsageEst
  */
 export function shouldCompact(contextTokens: number, contextWindow: number, settings: CompactionSettings): boolean {
 	if (!settings.enabled) return false;
-	const threshold = Math.max(contextWindow * 0.2, contextWindow - settings.reserveTokens);
-	return contextTokens > threshold;
+	return contextTokens > contextWindow - settings.reserveTokens;
 }
 
 // ============================================================================
@@ -615,7 +614,6 @@ export interface CompactionPreparation {
 export function prepareCompaction(
 	pathEntries: SessionEntry[],
 	settings: CompactionSettings,
-	contextWindow: number,
 ): CompactionPreparation | undefined {
 	if (pathEntries.length > 0 && pathEntries[pathEntries.length - 1].type === "compaction") {
 		return undefined;
@@ -641,12 +639,7 @@ export function prepareCompaction(
 
 	const tokensBefore = estimateContextTokens(buildSessionContext(pathEntries).messages).tokens;
 
-	// Cap keepRecentTokens to ensure it's less than the compaction threshold,
-	// otherwise we might try to keep more tokens than the threshold allows.
-	const threshold = Math.max(contextWindow * 0.2, contextWindow - settings.reserveTokens);
-	const safeKeepRecentTokens = Math.min(settings.keepRecentTokens, threshold * 0.8);
-
-	const cutPoint = findCutPoint(pathEntries, boundaryStart, boundaryEnd, safeKeepRecentTokens);
+	const cutPoint = findCutPoint(pathEntries, boundaryStart, boundaryEnd, settings.keepRecentTokens);
 
 	// Get UUID of first kept entry
 	const firstKeptEntry = pathEntries[cutPoint.firstKeptEntryIndex];
