@@ -409,7 +409,7 @@ describe("prepareCompaction with previous compaction", () => {
 
 		const pathEntries = [u1, a1, u2, a2, u3, a3, compaction1, u4, a4];
 		const contextBefore = buildSessionContext(pathEntries);
-		const preparation = prepareCompaction(pathEntries, DEFAULT_COMPACTION_SETTINGS);
+		const preparation = prepareCompaction(pathEntries, DEFAULT_COMPACTION_SETTINGS, 128000);
 
 		expect(preparation).toBeDefined();
 		expect(preparation!.firstKeptEntryId).toBe(u2.id);
@@ -448,7 +448,7 @@ describe("prepareCompaction with previous compaction", () => {
 			...DEFAULT_COMPACTION_SETTINGS,
 			keepRecentTokens: 100,
 		};
-		const preparation = prepareCompaction([u1, a1, u2, a2, u3, a3, compaction1, u4, a4], settings);
+		const preparation = prepareCompaction([u1, a1, u2, a2, u3, a3, compaction1, u4, a4], settings, 128000);
 
 		expect(preparation).toBeDefined();
 		const summarizedText = extractText(preparation!.messagesToSummarize);
@@ -500,7 +500,7 @@ describe.skipIf(!process.env.ANTHROPIC_OAUTH_TOKEN)("LLM summarization", () => {
 		const entries = loadLargeSessionEntries();
 		const model = getModel("anthropic", "claude-sonnet-4-5")!;
 
-		const preparation = prepareCompaction(entries, DEFAULT_COMPACTION_SETTINGS);
+		const preparation = prepareCompaction(entries, DEFAULT_COMPACTION_SETTINGS, 128000);
 		expect(preparation).toBeDefined();
 
 		const compactionResult = await compact(preparation!, model, process.env.ANTHROPIC_OAUTH_TOKEN!);
@@ -521,7 +521,7 @@ describe.skipIf(!process.env.ANTHROPIC_OAUTH_TOKEN)("LLM summarization", () => {
 		const loaded = buildSessionContext(entries);
 		const model = getModel("anthropic", "claude-sonnet-4-5")!;
 
-		const preparation = prepareCompaction(entries, DEFAULT_COMPACTION_SETTINGS);
+		const preparation = prepareCompaction(entries, DEFAULT_COMPACTION_SETTINGS, 128000);
 		expect(preparation).toBeDefined();
 
 		const compactionResult = await compact(preparation!, model, process.env.ANTHROPIC_OAUTH_TOKEN!);
