@@ -4,6 +4,8 @@
 ### Added
 - Added `plan` and `ask` to default built-in tools.
 
+## [0.70.0] - 2026-04-23
+
 ### New Features
 
 - Searchable auth provider login flow: the `/login` provider selector now supports fuzzy search/filtering, making it faster to find providers when many are configured. See [docs/providers.md](docs/providers.md). ([#3572](https://github.com/badlogic/pi-mono/pull/3572) by [@mitsuhiko](https://github.com/mitsuhiko))
