@@ -4,6 +4,8 @@
 ### Added
 - Added `plan` and `ask` to default built-in tools.
 
+## [0.70.1] - 2026-04-24
+
 ### New Features
 
 - DeepSeek provider support with V4 Flash/Pro models and `DEEPSEEK_API_KEY` authentication. See [README.md#providers--models](README.md#providers--models) and [docs/providers.md#api-keys](docs/providers.md#api-keys).
