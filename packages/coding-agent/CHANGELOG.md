@@ -4,6 +4,10 @@
 ### Added
 - Added `plan` and `ask` to default built-in tools.
 
+### Fixed
+
+- Fixed provider retry/timeout forwarding to omit undefined provider request controls, avoiding downstream SDK validation errors such as `timeout must be an integer` when `retry.provider.timeoutMs` is not configured ([#3627](https://github.com/badlogic/pi-mono/issues/3627))
+
 ## [0.70.1] - 2026-04-24
 
 ### New Features
