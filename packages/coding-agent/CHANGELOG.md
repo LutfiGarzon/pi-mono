@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - Added `plan` and `ask` to default built-in tools.
+
 ## [0.70.2] - 2026-04-24
 
 ### Fixed
