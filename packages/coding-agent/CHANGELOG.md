@@ -4,6 +4,10 @@
 ### Added
 - Added `plan` and `ask` to default built-in tools.
 
+### Fixed
+
+- Fixed coding-agent test expectations for current default models and missing-auth guidance.
+
 ## [0.70.2] - 2026-04-24
 
 ### Fixed
