@@ -4,6 +4,11 @@
 ### Added
 - Added `plan` and `ask` to default built-in tools.
 
+### New Features
+
+- DeepSeek provider support with V4 Flash/Pro models and `DEEPSEEK_API_KEY` authentication. See [README.md#providers--models](README.md#providers--models) and [docs/providers.md#api-keys](docs/providers.md#api-keys).
+- Provider request timeout/retry controls via `retry.provider.{timeoutMs,maxRetries,maxRetryDelayMs}`, useful for long-running local inference and provider SDK retry behavior. See [docs/settings.md#retry](docs/settings.md#retry). ([#3627](https://github.com/badlogic/pi-mono/issues/3627))
+
 ### Added
 
 - Added containerization documentation and a Gondolin extension example for routing built-in tools into a local micro-VM.
