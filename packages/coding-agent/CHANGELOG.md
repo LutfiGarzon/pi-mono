@@ -4,6 +4,10 @@
 ### Added
 - Added `plan` and `ask` to default built-in tools.
 
+### Added
+
+- Added DeepSeek to built-in provider setup, default model resolution, and provider documentation.
+
 ### Fixed
 
 - Fixed `/copy` to avoid unbounded OSC 52 writes and clipboard races that could break terminal rendering or panic the native clipboard addon ([#3639](https://github.com/badlogic/pi-mono/issues/3639))
