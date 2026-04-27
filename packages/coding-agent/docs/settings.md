@@ -68,6 +68,20 @@ Set `PI_SKIP_VERSION_CHECK=1` to disable the Pi version update check. Use `--off
 }
 ```
 
+### Warnings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `warnings.anthropicExtraUsage` | boolean | `true` | Show a warning when Anthropic subscription auth may use paid extra usage |
+
+```json
+{
+  "warnings": {
+    "anthropicExtraUsage": false
+  }
+}
+```
+
 ### Compaction
 
 | Setting | Type | Default | Description |

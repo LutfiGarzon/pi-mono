@@ -7,6 +7,12 @@ function createSettingsManager(warnings: { anthropicExtraUsage?: boolean } = {})
 	};
 }
 
+function createSettingsManager(warnings: { anthropicExtraUsage?: boolean } = {}) {
+	return {
+		getWarnings: vi.fn().mockReturnValue(warnings),
+	};
+}
+
 describe("InteractiveMode.maybeWarnAboutAnthropicSubscriptionAuth", () => {
 	test("warns once when Anthropic subscription auth is detected", async () => {
 		const fakeThis: any = {
