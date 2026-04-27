@@ -4,6 +4,10 @@
 ### Added
 - Added `plan` and `ask` to default built-in tools.
 
+### Fixed
+
+- Fixed packaged `pi` startup failing because the session selector imported a source-only utility path.
+
 ## [0.70.3] - 2026-04-27
 
 ### New Features
