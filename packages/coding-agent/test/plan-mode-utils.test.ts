@@ -6,7 +6,7 @@ import { parsePlanFile } from "../examples/extensions/plan-mode/utils.js";
 
 describe("plan-mode utils", () => {
 	it("parses markdown checklists correctly", async () => {
-		const dir = join(tmpdir(), "pi-plan-test-" + Date.now());
+		const dir = join(tmpdir(), `pi-plan-test-${Date.now()}`);
 		mkdirSync(dir, { recursive: true });
 		const file = join(dir, "plan.md");
 
