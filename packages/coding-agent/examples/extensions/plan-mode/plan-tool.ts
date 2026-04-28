@@ -1,8 +1,8 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { Spacer, Text } from "@mariozechner/pi-tui";
-import { type Static, Type } from "@sinclair/typebox";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { type Static, Type } from "typebox";
 
 const planTaskSchema = Type.Object({
 	description: Type.String({ description: "The task description" }),
