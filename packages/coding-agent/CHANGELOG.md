@@ -4,6 +4,10 @@
 ### Added
 - Added `plan` and `ask` to default built-in tools.
 
+### Added
+
+- Added `ctx.ui.getEditorComponent()` so extensions can wrap the currently configured custom editor factory ([#3935](https://github.com/badlogic/pi-mono/issues/3935)).
+
 ### Fixed
 
 - Fixed idle follow-up submission to clear the editor like normal message submission ([#3926](https://github.com/badlogic/pi-mono/issues/3926)).
