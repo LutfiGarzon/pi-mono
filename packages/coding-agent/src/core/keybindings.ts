@@ -52,6 +52,8 @@ export interface AppKeybindings {
 	"app.tree.filter.all": true;
 	"app.tree.filter.cycleForward": true;
 	"app.tree.filter.cycleBackward": true;
+	"app.chat.scrollUp": true;
+	"app.chat.scrollDown": true;
 }
 
 export type AppKeybinding = keyof AppKeybindings;
@@ -198,6 +200,14 @@ export const KEYBINDINGS = {
 	"app.tree.filter.cycleBackward": {
 		defaultKeys: "shift+ctrl+o",
 		description: "Tree filter: cycle backward",
+	},
+	"app.chat.scrollUp": {
+		defaultKeys: "ctrl+shift+up",
+		description: "Scroll chat up",
+	},
+	"app.chat.scrollDown": {
+		defaultKeys: "ctrl+shift+down",
+		description: "Scroll chat down",
 	},
 } as const satisfies KeybindingDefinitions;
 

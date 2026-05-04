@@ -31,6 +31,9 @@ import {
 	CombinedAutocompleteProvider,
 	type Component,
 	Container,
+	CURSOR_MARKER,
+	type FixedAreaCluster,
+	FixedBottomArea,
 	fuzzyFilter,
 	Loader,
 	type LoaderIndicatorOptions,
@@ -307,6 +310,7 @@ export class InteractiveMode {
 	private extensionWidgetsBelow = new Map<string, Component & { dispose?(): void }>();
 	private widgetContainerAbove!: Container;
 	private widgetContainerBelow!: Container;
+	private fixedBottomArea: FixedBottomArea | undefined;
 
 	// Custom footer from extension (undefined = use built-in footer)
 	private customFooter: (Component & { dispose?(): void }) | undefined = undefined;
@@ -638,6 +642,19 @@ export class InteractiveMode {
 		// Start the UI before initializing extensions so session_start handlers can use interactive dialogs
 		this.ui.start();
 		this.isInitialized = true;
+
+		// Install fixed-bottom-area AFTER terminal is initialized.
+		// This pins editor + footer to the bottom using
+		// alternate screen + scroll regions.
+		this.fixedBottomArea = new FixedBottomArea(this.ui);
+		this.fixedBottomArea.hideComponent(this.editorContainer);
+		this.fixedBottomArea.hideComponent(this.widgetContainerBelow);
+		this.fixedBottomArea.hideComponent(this.footer);
+		this.fixedBottomArea.renderCluster = (width) => this.renderFixedCluster(width);
+		this.fixedBottomArea.install();
+
+		// Force a full re-render so the fixed area takes effect
+		this.ui.requestRender(true);
 
 		// Initialize extensions first so resources are shown before messages
 		await this.rebindCurrentSession();
@@ -1836,26 +1853,24 @@ export class InteractiveMode {
 			| ((tui: TUI, thm: Theme, footerData: ReadonlyFooterDataProvider) => Component & { dispose?(): void })
 			| undefined,
 	): void {
-		// Dispose existing custom footer
-		if (this.customFooter?.dispose) {
-			this.customFooter.dispose();
-		}
+		const area = this.fixedBottomArea;
 
-		// Remove current footer from UI
+		// Remove the currently active footer (custom or built-in)
+		const oldFooter = this.customFooter ?? this.footer;
 		if (this.customFooter) {
-			this.ui.removeChild(this.customFooter);
-		} else {
-			this.ui.removeChild(this.footer);
+			if (this.customFooter.dispose) this.customFooter.dispose();
+			if (area) area.unhideComponent(this.customFooter);
+			this.customFooter = undefined;
 		}
+		this.ui.removeChild(oldFooter);
 
 		if (factory) {
-			// Create and add custom footer, passing the data provider
 			this.customFooter = factory(this.ui, theme, this.footerDataProvider);
 			this.ui.addChild(this.customFooter);
+			if (area) area.hideComponent(this.customFooter);
 		} else {
-			// Restore built-in footer
-			this.customFooter = undefined;
 			this.ui.addChild(this.footer);
+			if (area) area.hideComponent(this.footer);
 		}
 
 		this.ui.requestRender();
@@ -2431,6 +2446,9 @@ export class InteractiveMode {
 			text = text.trim();
 			if (!text) return;
 
+			// Auto-scroll to bottom on submit
+			this.fixedBottomArea?.scrollToBottom();
+
 			// Handle commands
 			if (text === "/settings") {
 				this.showSettingsSelector();
@@ -2605,6 +2623,37 @@ export class InteractiveMode {
 			}
 			this.editor.addToHistory?.(text);
 		};
+	}
+
+	/**
+	 * Render the fixed bottom cluster (editor + widgets-below + footer).
+	 * Called by FixedBottomArea to paint the sticky area.
+	 */
+	private renderFixedCluster(width: number): FixedAreaCluster {
+		const area = this.fixedBottomArea!;
+		const editorLines = area.renderHidden(this.editorContainer, width);
+		const widgetLines = area.renderHidden(this.widgetContainerBelow, width);
+
+		// Footer: use custom footer if set, otherwise built-in
+		const footerComponent = this.customFooter ?? this.footer;
+		const footerLines = area.renderHidden(footerComponent, width);
+
+		const lines = [...editorLines, ...widgetLines, ...footerLines];
+
+		// Extract CURSOR_MARKER position from the editor output
+		let cursorRow = -1;
+		let cursorCol = -1;
+		for (let i = 0; i < lines.length; i++) {
+			const idx = lines[i]!.indexOf(CURSOR_MARKER);
+			if (idx !== -1) {
+				cursorRow = i;
+				cursorCol = visibleWidth(lines[i]!.slice(0, idx));
+				lines[i] = lines[i]!.replace(CURSOR_MARKER, "");
+				break;
+			}
+		}
+
+		return { lines, cursorRow, cursorCol };
 	}
 
 	private subscribeToAgent(): void {
