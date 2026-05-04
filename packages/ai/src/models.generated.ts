@@ -4697,7 +4697,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
+			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -4733,7 +4733,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
+			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -4751,7 +4751,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
+			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -4854,7 +4854,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
+			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 0,
@@ -4872,7 +4872,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
+			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 0,
@@ -5063,7 +5063,7 @@ export const MODELS = {
 			provider: "google-vertex",
 			baseUrl: "https://{location}-aiplatform.googleapis.com",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
+			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -5081,7 +5081,7 @@ export const MODELS = {
 			provider: "google-vertex",
 			baseUrl: "https://{location}-aiplatform.googleapis.com",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
+			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -5099,7 +5099,7 @@ export const MODELS = {
 			provider: "google-vertex",
 			baseUrl: "https://{location}-aiplatform.googleapis.com",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
+			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -7781,7 +7781,7 @@ export const MODELS = {
 			provider: "opencode",
 			baseUrl: "https://opencode.ai/zen/v1",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
+			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -9318,7 +9318,7 @@ export const MODELS = {
 				cacheRead: 0.024999999999999998,
 				cacheWrite: 0.08333333333333334,
 			},
-			contextWindow: 1048576,
+			contextWindow: 1000000,
 			maxTokens: 8192,
 		} satisfies Model<"openai-completions">,
 		"google/gemini-2.0-flash-lite-001": {

@@ -141,7 +141,7 @@ function applyThinkingLevelMetadata(model: Model<any>): void {
 	// Gemini 3 Pro: does not support minimal (per Google docs).
 	// Levels: low, medium, high
 	if (isGoogleThinkingApi(model) && isGemini3ProModel(model.id)) {
-		mergeThinkingLevelMap(model, { off: null, low: "LOW", medium: "MEDIUM", high: "HIGH" });
+		mergeThinkingLevelMap(model, { off: null, minimal: null, low: "LOW", medium: "MEDIUM", high: "HIGH" });
 	}
 	// Gemini 3 Flash Lite: supports all levels, minimal is the default.
 	if (isGoogleThinkingApi(model) && isGemini3FlashLiteModel(model.id)) {
@@ -154,7 +154,7 @@ function applyThinkingLevelMetadata(model: Model<any>): void {
 	// Gemma 4: does not support minimal.
 	// Levels: low, medium, high
 	if (isGoogleThinkingApi(model) && isGemma4Model(model.id)) {
-		mergeThinkingLevelMap(model, { off: null, low: "LOW", medium: "MEDIUM", high: "HIGH" });
+		mergeThinkingLevelMap(model, { off: null, minimal: null, low: "LOW", medium: "MEDIUM", high: "HIGH" });
 	}
 	if (model.provider === "groq" && model.id === "qwen/qwen3-32b") {
 		mergeThinkingLevelMap(model, { minimal: null, low: null, medium: null, high: "default" });
