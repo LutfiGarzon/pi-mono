@@ -1054,10 +1054,11 @@ function detectCompat(model: Model<"openai-completions">): ResolvedOpenAIComplet
 		isCloudflareWorkersAI ||
 		isCloudflareAiGateway;
 
-	const useMaxTokens = baseUrl.includes("chutes.ai") || isMoonshot || isCloudflareAiGateway;
+	const isDeepSeek = provider === "deepseek" || baseUrl.includes("deepseek.com");
+
+	const useMaxTokens = baseUrl.includes("chutes.ai") || isMoonshot || isCloudflareAiGateway || isDeepSeek;
 
 	const isGrok = provider === "xai" || baseUrl.includes("api.x.ai");
-	const isDeepSeek = provider === "deepseek" || baseUrl.includes("deepseek.com");
 	const cacheControlFormat = provider === "openrouter" && model.id.startsWith("anthropic/") ? "anthropic" : undefined;
 
 	return {
