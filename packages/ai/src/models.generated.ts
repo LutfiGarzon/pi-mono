@@ -3566,7 +3566,7 @@ export const MODELS = {
 			baseUrl: "https://api.deepseek.com",
 			compat: {"requiresReasoningContentOnAssistantMessages":true,"thinkingFormat":"deepseek"},
 			reasoning: true,
-			thinkingLevelMap: {"minimal":null,"low":null,"medium":null,"high":"high","xhigh":"max"},
+			thinkingLevelMap: {"minimal":null,"low":"low","medium":"medium","high":"high","xhigh":"max"},
 			input: ["text"],
 			cost: {
 				input: 0.14,
@@ -3585,7 +3585,7 @@ export const MODELS = {
 			baseUrl: "https://api.deepseek.com",
 			compat: {"requiresReasoningContentOnAssistantMessages":true,"thinkingFormat":"deepseek"},
 			reasoning: true,
-			thinkingLevelMap: {"minimal":null,"low":null,"medium":null,"high":"high","xhigh":"max"},
+			thinkingLevelMap: {"minimal":null,"low":"low","medium":"medium","high":"high","xhigh":"max"},
 			input: ["text"],
 			cost: {
 				input: 0.435,
@@ -4679,7 +4679,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null},
+			thinkingLevelMap: {"off":null,"minimal":"MINIMAL","low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 0.5,
@@ -4697,7 +4697,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":null,"high":"HIGH"},
+			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -4715,7 +4715,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null},
+			thinkingLevelMap: {"off":null,"minimal":"MINIMAL","low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 0.25,
@@ -4733,7 +4733,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":null,"high":"HIGH"},
+			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -4751,7 +4751,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":null,"high":"HIGH"},
+			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -4854,7 +4854,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"minimal":"MINIMAL","low":null,"medium":null,"high":"HIGH"},
+			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 0,
@@ -4872,7 +4872,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"minimal":"MINIMAL","low":null,"medium":null,"high":"HIGH"},
+			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 0,
@@ -5045,7 +5045,7 @@ export const MODELS = {
 			provider: "google-vertex",
 			baseUrl: "https://{location}-aiplatform.googleapis.com",
 			reasoning: true,
-			thinkingLevelMap: {"off":null},
+			thinkingLevelMap: {"off":null,"minimal":"MINIMAL","low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 0.5,
@@ -5063,7 +5063,7 @@ export const MODELS = {
 			provider: "google-vertex",
 			baseUrl: "https://{location}-aiplatform.googleapis.com",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":null,"high":"HIGH"},
+			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -5081,7 +5081,7 @@ export const MODELS = {
 			provider: "google-vertex",
 			baseUrl: "https://{location}-aiplatform.googleapis.com",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":null,"high":"HIGH"},
+			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -5099,7 +5099,7 @@ export const MODELS = {
 			provider: "google-vertex",
 			baseUrl: "https://{location}-aiplatform.googleapis.com",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":null,"high":"HIGH"},
+			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -7763,7 +7763,7 @@ export const MODELS = {
 			provider: "opencode",
 			baseUrl: "https://opencode.ai/zen/v1",
 			reasoning: true,
-			thinkingLevelMap: {"off":null},
+			thinkingLevelMap: {"off":null,"minimal":"MINIMAL","low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 0.5,
@@ -7781,7 +7781,7 @@ export const MODELS = {
 			provider: "opencode",
 			baseUrl: "https://opencode.ai/zen/v1",
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"minimal":null,"low":"LOW","medium":null,"high":"HIGH"},
+			thinkingLevelMap: {"off":null,"low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 2,
@@ -8275,9 +8275,9 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "opencode-go",
 			baseUrl: "https://opencode.ai/zen/go/v1",
-			compat: {"requiresReasoningContentOnAssistantMessages":true,"thinkingFormat":"deepseek"},
+			compat: {"requiresReasoningContentOnAssistantMessages":true,"maxTokensField":"max_tokens"},
 			reasoning: true,
-			thinkingLevelMap: {"minimal":null,"low":null,"medium":null,"high":"high","xhigh":"max"},
+			thinkingLevelMap: {"minimal":null,"low":"low","medium":"medium","high":"high","xhigh":"max"},
 			input: ["text"],
 			cost: {
 				input: 0.14,
@@ -8294,9 +8294,9 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "opencode-go",
 			baseUrl: "https://opencode.ai/zen/go/v1",
-			compat: {"requiresReasoningContentOnAssistantMessages":true,"thinkingFormat":"deepseek"},
+			compat: {"requiresReasoningContentOnAssistantMessages":true,"maxTokensField":"max_tokens"},
 			reasoning: true,
-			thinkingLevelMap: {"minimal":null,"low":null,"medium":null,"high":"high","xhigh":"max"},
+			thinkingLevelMap: {"minimal":null,"low":"low","medium":"medium","high":"high","xhigh":"max"},
 			input: ["text"],
 			cost: {
 				input: 1.74,
@@ -9207,8 +9207,8 @@ export const MODELS = {
 			reasoning: true,
 			input: ["text"],
 			cost: {
-				input: 0.21,
-				output: 0.7899999999999999,
+				input: 0.27,
+				output: 0.95,
 				cacheRead: 0.13,
 				cacheWrite: 0,
 			},
@@ -9257,7 +9257,7 @@ export const MODELS = {
 			baseUrl: "https://openrouter.ai/api/v1",
 			compat: {"requiresReasoningContentOnAssistantMessages":true,"thinkingFormat":"deepseek"},
 			reasoning: true,
-			thinkingLevelMap: {"minimal":null,"low":null,"medium":null,"high":"high","xhigh":"max"},
+			thinkingLevelMap: {"minimal":null,"low":"low","medium":"medium","high":"high","xhigh":"max"},
 			input: ["text"],
 			cost: {
 				input: 0.14,
@@ -9276,7 +9276,7 @@ export const MODELS = {
 			baseUrl: "https://openrouter.ai/api/v1",
 			compat: {"requiresReasoningContentOnAssistantMessages":true,"thinkingFormat":"deepseek"},
 			reasoning: true,
-			thinkingLevelMap: {"minimal":null,"low":null,"medium":null,"high":"high","xhigh":"max"},
+			thinkingLevelMap: {"minimal":null,"low":"low","medium":"medium","high":"high","xhigh":"max"},
 			input: ["text"],
 			cost: {
 				input: 0.435,
@@ -9318,7 +9318,7 @@ export const MODELS = {
 				cacheRead: 0.024999999999999998,
 				cacheWrite: 0.08333333333333334,
 			},
-			contextWindow: 1000000,
+			contextWindow: 1048576,
 			maxTokens: 8192,
 		} satisfies Model<"openai-completions">,
 		"google/gemini-2.0-flash-lite-001": {
@@ -11807,13 +11807,13 @@ export const MODELS = {
 			reasoning: true,
 			input: ["text"],
 			cost: {
-				input: 0.08,
-				output: 0.28,
+				input: 0.09,
+				output: 0.44999999999999996,
 				cacheRead: 0,
 				cacheWrite: 0,
 			},
 			contextWindow: 40960,
-			maxTokens: 16384,
+			maxTokens: 20000,
 		} satisfies Model<"openai-completions">,
 		"qwen/qwen3-30b-a3b-instruct-2507": {
 			id: "qwen/qwen3-30b-a3b-instruct-2507",
@@ -16813,7 +16813,7 @@ export const MODELS = {
 		} satisfies Model<"openai-completions">,
 		"glm-5v-turbo": {
 			id: "glm-5v-turbo",
-			name: "glm-5v-turbo",
+			name: "GLM-5V-Turbo",
 			api: "openai-completions",
 			provider: "zai",
 			baseUrl: "https://api.z.ai/api/coding/paas/v4",

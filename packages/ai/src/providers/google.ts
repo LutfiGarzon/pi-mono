@@ -407,6 +407,10 @@ function isGemini3FlashModel(model: Model<"google-generative-ai">): boolean {
 	return /gemini-3(?:\.\d+)?-flash/.test(model.id.toLowerCase());
 }
 
+function isGemini3FlashLiteModel(modelId: string): boolean {
+	return /gemini-3(?:\.\d+)?-flash-lite/.test(modelId.toLowerCase());
+}
+
 function getDisabledThinkingConfig(model: Model<"google-generative-ai">): ThinkingConfig {
 	// Google docs: Gemini 3.1 Pro cannot disable thinking, and Gemini 3 Flash / Flash-Lite
 	// do not support full thinking-off either. For Gemini 3 models, use the lowest supported
@@ -414,11 +418,12 @@ function getDisabledThinkingConfig(model: Model<"google-generative-ai">): Thinki
 	if (isGemini3ProModel(model)) {
 		return { thinkingLevel: "LOW" as any };
 	}
-	if (isGemini3FlashModel(model)) {
+	if (isGemini3FlashLiteModel(model.id) || isGemini3FlashModel(model)) {
 		return { thinkingLevel: "MINIMAL" as any };
 	}
+	// Gemma 4: minimal is not supported, use LOW as the lowest available level.
 	if (isGemma4Model(model)) {
-		return { thinkingLevel: "MINIMAL" as any };
+		return { thinkingLevel: "LOW" as any };
 	}
 
 	// Gemini 2.x supports disabling via thinkingBudget = 0.
@@ -426,26 +431,33 @@ function getDisabledThinkingConfig(model: Model<"google-generative-ai">): Thinki
 }
 
 function getThinkingLevel(effort: ClampedThinkingLevel, model: Model<"google-generative-ai">): GoogleThinkingLevel {
+	// Gemini 3 Pro: low, medium, high (no minimal per docs).
 	if (isGemini3ProModel(model)) {
 		switch (effort) {
-			case "minimal":
 			case "low":
 				return "LOW";
 			case "medium":
+				return "MEDIUM";
 			case "high":
+				return "HIGH";
+			default:
 				return "HIGH";
 		}
 	}
+	// Gemma 4: low, medium, high (no minimal).
 	if (isGemma4Model(model)) {
 		switch (effort) {
-			case "minimal":
 			case "low":
-				return "MINIMAL";
+				return "LOW";
 			case "medium":
+				return "MEDIUM";
 			case "high":
+				return "HIGH";
+			default:
 				return "HIGH";
 		}
 	}
+	// All other models (incl. Flash and Flash Lite): minimal, low, medium, high.
 	switch (effort) {
 		case "minimal":
 			return "MINIMAL";
@@ -454,6 +466,8 @@ function getThinkingLevel(effort: ClampedThinkingLevel, model: Model<"google-gen
 		case "medium":
 			return "MEDIUM";
 		case "high":
+			return "HIGH";
+		default:
 			return "HIGH";
 	}
 }

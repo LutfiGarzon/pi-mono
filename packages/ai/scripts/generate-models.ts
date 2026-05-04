@@ -80,8 +80,8 @@ const EAGER_TOOL_INPUT_STREAMING_UNSUPPORTED_ANTHROPIC_MODELS = new Set([
 
 const DEEPSEEK_V4_THINKING_LEVEL_MAP = {
 	minimal: null,
-	low: null,
-	medium: null,
+	low: "low",
+	medium: "medium",
 	high: "high",
 	xhigh: "max",
 } as const;
@@ -111,6 +111,10 @@ function isGemini3FlashModel(modelId: string): boolean {
 	return /gemini-3(?:\.\d+)?-flash/.test(modelId.toLowerCase());
 }
 
+function isGemini3FlashLiteModel(modelId: string): boolean {
+	return /gemini-3(?:\.\d+)?-flash-lite/.test(modelId.toLowerCase());
+}
+
 function isGemma4Model(modelId: string): boolean {
 	return /gemma-?4/.test(modelId.toLowerCase());
 }
@@ -134,14 +138,23 @@ function applyThinkingLevelMetadata(model: Model<any>): void {
 	if (model.api === "openai-completions" && model.id.includes("deepseek-v4")) {
 		mergeThinkingLevelMap(model, DEEPSEEK_V4_THINKING_LEVEL_MAP);
 	}
+	// Gemini 3 Pro: does not support minimal (per Google docs).
+	// Levels: low, medium, high
 	if (isGoogleThinkingApi(model) && isGemini3ProModel(model.id)) {
-		mergeThinkingLevelMap(model, { off: null, minimal: null, low: "LOW", medium: null, high: "HIGH" });
+		mergeThinkingLevelMap(model, { off: null, low: "LOW", medium: "MEDIUM", high: "HIGH" });
 	}
-	if (isGoogleThinkingApi(model) && isGemini3FlashModel(model.id)) {
-		mergeThinkingLevelMap(model, { off: null });
+	// Gemini 3 Flash Lite: supports all levels, minimal is the default.
+	if (isGoogleThinkingApi(model) && isGemini3FlashLiteModel(model.id)) {
+		mergeThinkingLevelMap(model, { off: null, minimal: "MINIMAL", low: "LOW", medium: "MEDIUM", high: "HIGH" });
 	}
+	// Gemini 3 Flash (non-Lite): supports all levels, high is the default.
+	if (isGoogleThinkingApi(model) && isGemini3FlashModel(model.id) && !isGemini3FlashLiteModel(model.id)) {
+		mergeThinkingLevelMap(model, { off: null, minimal: "MINIMAL", low: "LOW", medium: "MEDIUM", high: "HIGH" });
+	}
+	// Gemma 4: does not support minimal.
+	// Levels: low, medium, high
 	if (isGoogleThinkingApi(model) && isGemma4Model(model.id)) {
-		mergeThinkingLevelMap(model, { off: null, minimal: "MINIMAL", low: null, medium: null, high: "HIGH" });
+		mergeThinkingLevelMap(model, { off: null, low: "LOW", medium: "MEDIUM", high: "HIGH" });
 	}
 	if (model.provider === "groq" && model.id === "qwen/qwen3-32b") {
 		mergeThinkingLevelMap(model, { minimal: null, low: null, medium: null, high: "default" });
@@ -1315,15 +1328,20 @@ async function generateModels() {
 
 	for (const candidate of allModels) {
 		if (candidate.api === "openai-completions" && candidate.id.includes("deepseek-v4")) {
+			// opencode-go proxy handles thinking format server-side; only needs
+			// reasoning_content on replayed messages plus OpenAI-style reasoning_effort.
+			const isOpenCodeGo = candidate.provider === "opencode-go";
 			candidate.compat = {
 				...candidate.compat,
-				...(candidate.provider === "openrouter"
-					? {
-							requiresReasoningContentOnAssistantMessages:
-								deepseekCompat.requiresReasoningContentOnAssistantMessages,
-							thinkingFormat: deepseekCompat.thinkingFormat,
-						}
-					: deepseekCompat),
+				requiresReasoningContentOnAssistantMessages:
+					deepseekCompat.requiresReasoningContentOnAssistantMessages,
+				...(isOpenCodeGo
+					? ({ maxTokensField: "max_tokens" } as OpenAICompletionsCompat)
+					: candidate.provider === "openrouter"
+						? {
+								thinkingFormat: deepseekCompat.thinkingFormat,
+							}
+						: deepseekCompat),
 			};
 			mergeThinkingLevelMap(candidate, DEEPSEEK_V4_THINKING_LEVEL_MAP);
 		}

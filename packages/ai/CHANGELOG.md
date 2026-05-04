@@ -10,6 +10,14 @@
 
 - Added Xiaomi MiMo Token Plan regional providers with per-region env vars: `xiaomi-token-plan-cn` (`XIAOMI_TOKEN_PLAN_CN_API_KEY`), `xiaomi-token-plan-ams` (`XIAOMI_TOKEN_PLAN_AMS_API_KEY`), and `xiaomi-token-plan-sgp` (`XIAOMI_TOKEN_PLAN_SGP_API_KEY`).
 
+### Fixed
+
+- Fixed Gemini 3 Pro thinking level metadata to include medium (was incorrectly excluded). Per Google docs, Gemini 3 Pro supports low, medium, and high but not minimal.
+- Fixed Gemma 4 thinking level metadata to include low and medium (were incorrectly excluded) and removed minimal (Gemma 4 does not support it).
+- Fixed Gemini 3 Flash thinking level metadata to explicitly list all supported levels (minimal, low, medium, high) instead of relying on implicit defaults.
+- Fixed `getThinkingLevel` in both `google.ts` and `google-vertex.ts` to correctly map medium to `MEDIUM` for Gemini 3 Pro and Gemma 4, and low to `LOW` for Gemma 4.
+- Added `thinkingLevel`-based routing for Gemma 4 models in the Vertex provider (previously fell through to budget-based thinking).
+
 ## [0.72.1] - 2026-05-02
 
 ## [0.72.0] - 2026-05-01
