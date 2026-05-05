@@ -442,8 +442,8 @@ export class FixedBottomArea {
 	private mouseScrollDelta(packet: SgrMousePacket): number {
 		if (packet.final !== "M") return 0;
 		const base = this.mouseBaseButton(packet.code);
-		if (base === 64) return 2;
-		if (base === 65) return -2;
+		if (base === 64) return 1;
+		if (base === 65) return -1;
 		return 0;
 	}
 
