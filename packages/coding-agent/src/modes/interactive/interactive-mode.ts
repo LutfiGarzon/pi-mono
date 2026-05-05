@@ -654,20 +654,8 @@ export class InteractiveMode {
 		this.isInitialized = true;
 
 		// Install fixed-bottom-area AFTER terminal is initialized.
-		// This pins editor + footer to the bottom using
-		// alternate screen + scroll regions.
-		this.fixedBottomArea = new FixedBottomArea(this.ui);
-		this.fixedBottomArea.hideComponent(this.editorContainer);
-		this.fixedBottomArea.hideComponent(this.widgetContainerBelow);
-		this.fixedBottomArea.hideComponent(this.footer);
-		this.fixedBottomArea.renderCluster = (width) => this.renderFixedCluster(width);
-		this.fixedBottomArea.onCopySelection = (text) => {
-			copyToClipboard(text).catch(() => {});
-		};
-		this.fixedBottomArea.install();
-
-		// Force a full re-render so the fixed area takes effect
-		this.ui.requestRender(true);
+		// Can be toggled at runtime with /fixed-layout on|off
+		this.toggleFixedLayout(true);
 
 		// Initialize extensions first so resources are shown before messages
 		await this.rebindCurrentSession();
@@ -2585,6 +2573,16 @@ export class InteractiveMode {
 				await this.shutdown();
 				return;
 			}
+			if (text === "/fixed-layout" || text === "/fixed-layout on") {
+				this.editor.setText("");
+				this.toggleFixedLayout(true);
+				return;
+			}
+			if (text === "/fixed-layout off") {
+				this.editor.setText("");
+				this.toggleFixedLayout(false);
+				return;
+			}
 
 			// Handle bash command (! for normal, !! for excluded from context)
 			if (text.startsWith("!")) {
@@ -2636,6 +2634,30 @@ export class InteractiveMode {
 			}
 			this.editor.addToHistory?.(text);
 		};
+	}
+
+	/**
+	 * Toggle the fixed bottom layout on or off at runtime.
+	 */
+	private toggleFixedLayout(enable: boolean): void {
+		if (enable && !this.fixedBottomArea) {
+			this.fixedBottomArea = new FixedBottomArea(this.ui);
+			this.fixedBottomArea.hideComponent(this.editorContainer);
+			this.fixedBottomArea.hideComponent(this.widgetContainerBelow);
+			this.fixedBottomArea.hideComponent(this.footer);
+			this.fixedBottomArea.renderCluster = (width) => this.renderFixedCluster(width);
+			this.fixedBottomArea.onCopySelection = (text) => {
+				copyToClipboard(text).catch(() => {});
+			};
+			this.fixedBottomArea.install();
+			this.ui.requestRender(true);
+			this.showStatus("Fixed layout enabled");
+		} else if (!enable && this.fixedBottomArea) {
+			this.fixedBottomArea.dispose();
+			this.fixedBottomArea = undefined;
+			this.ui.requestRender(true);
+			this.showStatus("Fixed layout disabled");
+		}
 	}
 
 	/**
