@@ -654,7 +654,7 @@ export class InteractiveMode {
 		this.isInitialized = true;
 
 		// Install fixed-bottom-area AFTER terminal is initialized.
-		// Can be toggled at runtime with /fixed-layout on|off
+		// Can be toggled at runtime with /fixed
 		this.toggleFixedLayout(true);
 
 		// Initialize extensions first so resources are shown before messages
@@ -2573,14 +2573,9 @@ export class InteractiveMode {
 				await this.shutdown();
 				return;
 			}
-			if (text === "/fixed-layout" || text === "/fixed-layout on") {
+			if (text === "/fixed") {
 				this.editor.setText("");
-				this.toggleFixedLayout(true);
-				return;
-			}
-			if (text === "/fixed-layout off") {
-				this.editor.setText("");
-				this.toggleFixedLayout(false);
+				this.toggleFixedLayout(!this.fixedBottomArea);
 				return;
 			}
 
