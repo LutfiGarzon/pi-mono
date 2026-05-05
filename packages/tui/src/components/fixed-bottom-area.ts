@@ -442,8 +442,8 @@ export class FixedBottomArea {
 	private mouseScrollDelta(packet: SgrMousePacket): number {
 		if (packet.final !== "M") return 0;
 		const base = this.mouseBaseButton(packet.code);
-		if (base === 64) return 3;
-		if (base === 65) return -3;
+		if (base === 64) return 2;
+		if (base === 65) return -2;
 		return 0;
 	}
 
@@ -488,14 +488,14 @@ export class FixedBottomArea {
 			return;
 		}
 
-		// Any release: finish selection
+		// Any release with a selection: copy to clipboard, keep selection highlighted
 		if (packet.final === "m" && this.selectionDragging) {
 			this.selectionDragging = false;
 			const text = this.getSelectedText();
 			if (text && this.onCopySelection) {
 				this.onCopySelection(text);
 			}
-			this.clearSelection();
+			// Don't clear selection — keep it highlighted like native terminal behavior
 			this.tui.requestRender();
 			return;
 		}
