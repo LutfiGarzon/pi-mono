@@ -23,6 +23,7 @@ export class ExtensionSelectorComponent extends Container {
 	private titleText: Text;
 	private baseTitle: string;
 	private countdown: CountdownTimer | undefined;
+	private maxVisible = 8;
 
 	constructor(
 		title: string,
@@ -76,22 +77,38 @@ export class ExtensionSelectorComponent extends Container {
 
 	private updateList(): void {
 		this.listContainer.clear();
-		for (let i = 0; i < this.options.length; i++) {
+
+		const startIndex = Math.max(
+			0,
+			Math.min(this.selectedIndex - Math.floor(this.maxVisible / 2), this.options.length - this.maxVisible),
+		);
+		const endIndex = Math.min(startIndex + this.maxVisible, this.options.length);
+
+		for (let i = startIndex; i < endIndex; i++) {
 			const isSelected = i === this.selectedIndex;
 			const text = isSelected
 				? theme.fg("accent", "→ ") + theme.fg("accent", this.options[i])
 				: `  ${theme.fg("text", this.options[i])}`;
 			this.listContainer.addChild(new Text(text, 1, 0));
 		}
+
+		// Scroll indicator
+		if (startIndex > 0 || endIndex < this.options.length) {
+			this.listContainer.addChild(
+				new Text(theme.fg("muted", `  (${this.selectedIndex + 1}/${this.options.length})`), 1, 0),
+			);
+		}
 	}
 
 	handleInput(keyData: string): void {
 		const kb = getKeybindings();
 		if (kb.matches(keyData, "tui.select.up") || keyData === "k") {
-			this.selectedIndex = Math.max(0, this.selectedIndex - 1);
+			if (this.options.length === 0) return;
+			this.selectedIndex = this.selectedIndex === 0 ? this.options.length - 1 : this.selectedIndex - 1;
 			this.updateList();
 		} else if (kb.matches(keyData, "tui.select.down") || keyData === "j") {
-			this.selectedIndex = Math.min(this.options.length - 1, this.selectedIndex + 1);
+			if (this.options.length === 0) return;
+			this.selectedIndex = this.selectedIndex === this.options.length - 1 ? 0 : this.selectedIndex + 1;
 			this.updateList();
 		} else if (kb.matches(keyData, "tui.select.confirm") || keyData === "\n") {
 			const selected = this.options[this.selectedIndex];
