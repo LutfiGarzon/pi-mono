@@ -661,6 +661,9 @@ export class InteractiveMode {
 		this.fixedBottomArea.hideComponent(this.widgetContainerBelow);
 		this.fixedBottomArea.hideComponent(this.footer);
 		this.fixedBottomArea.renderCluster = (width) => this.renderFixedCluster(width);
+		this.fixedBottomArea.onCopySelection = (text) => {
+			copyToClipboard(text).catch(() => {});
+		};
 		this.fixedBottomArea.install();
 
 		// Force a full re-render so the fixed area takes effect

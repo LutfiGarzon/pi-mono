@@ -35,19 +35,52 @@ export interface FixedAreaCluster {
 
 type RenderFn = (width: number) => string[];
 
+interface SgrMousePacket {
+	code: number;
+	col: number;
+	row: number;
+	final: "M" | "m";
+}
+
+interface SelectionPoint {
+	line: number;
+	col: number;
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+
+/** Strip ANSI escape sequences and OSC sequences from a string. */
+function stripAnsi(line: string): string {
+	return line.replace(/\x1b\][^\x07]*(?:\x07|\x1b\\)/g, "").replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "");
+}
+
+/** Slice text by visual columns. */
+function sliceColumns(text: string, startCol: number, endCol: number): string {
+	let col = 0;
+	let result = "";
+	for (const { segment } of graphemeSegmenter.segment(stripAnsi(text))) {
+		const width = Math.max(0, visibleWidth(segment));
+		if (col >= startCol && col < endCol) {
+			result += segment;
+		}
+		col += width;
+	}
+	return result;
+}
+
+function comparePoints(a: SelectionPoint, b: SelectionPoint): number {
+	return a.line === b.line ? a.col - b.col : a.line - b.line;
+}
+
 // ── FixedBottomArea ─────────────────────────────────────────────────────────
 
 /**
  * Pins components to the bottom of the terminal using scroll regions.
  *
- * Works by:
- * 1. Entering the alternate screen
- * 2. Setting a scroll region that excludes the bottom reserved rows
- * 3. Overriding terminal.rows so the TUI renders into the scrollable area only
- * 4. Hiding sticky components from the main render tree
- * 5. Painting them separately in the reserved bottom rows
- *
- * Keyboard scroll is handled via a TUI input listener.
+ * Supports mouse-wheel scrolling and mouse text selection
+ * (drag to select, releases to clipboard via onCopySelection callback).
  */
 export class FixedBottomArea {
 	private tui: TUI;
@@ -68,14 +101,23 @@ export class FixedBottomArea {
 	private renderingCluster = false;
 	private cachedClusterLines = 0;
 
+	// Mouse text selection state
+	private selectionAnchor: SelectionPoint | null = null;
+	private selectionFocus: SelectionPoint | null = null;
+	private selectionDragging = false;
+	private visibleScrollStart = 0;
+	private scrollableLines: string[] = [];
+
 	/** Callback: render the fixed cluster given the terminal width. */
 	public renderCluster: ((width: number) => FixedAreaCluster) | null = null;
+
+	/** Callback: copy selected text to clipboard. */
+	public onCopySelection: ((text: string) => void) | null = null;
 
 	constructor(tui: TUI) {
 		this.tui = tui;
 		this.originalWrite = tui.terminal.write.bind(tui.terminal);
 
-		// Capture original rows descriptor for later restoration
 		let target: object | null = tui.terminal;
 		while (target) {
 			const desc = Object.getOwnPropertyDescriptor(target, "rows");
@@ -86,9 +128,8 @@ export class FixedBottomArea {
 			target = Object.getPrototypeOf(target);
 		}
 
-		// Save original rows value (used to read real terminal height after override)
 		if (this.originalRowsDescriptor?.get) {
-			this.originalRowsValue = undefined; // will use getter each time
+			this.originalRowsValue = undefined;
 		} else {
 			this.originalRowsValue = (tui.terminal as any).rows as number;
 		}
@@ -96,29 +137,17 @@ export class FixedBottomArea {
 
 	// ── Public API ──────────────────────────────────────────────────────────
 
-	/**
-	 * Hide a component from the main render tree.
-	 * Its original render function is saved so it can still be rendered
-	 * inside the fixed cluster via renderHidden().
-	 */
 	hideComponent(component: Component): void {
 		if (this.hiddenComponents.has(component)) return;
 		this.hiddenComponents.set(component, component.render.bind(component));
 		component.render = () => [];
 	}
 
-	/**
-	 * Render a previously hidden component at the given width.
-	 * Uses the saved original render function.
-	 */
 	renderHidden(component: Component, width: number): string[] {
 		const render = this.hiddenComponents.get(component);
 		return render ? render(width) : component.render(width);
 	}
 
-	/**
-	 * Restore a previously hidden component's original render function.
-	 */
 	unhideComponent(component: Component): void {
 		const original = this.hiddenComponents.get(component);
 		if (original) {
@@ -127,32 +156,31 @@ export class FixedBottomArea {
 		}
 	}
 
-	/** Set the number of rows reserved at the bottom for the fixed cluster. */
 	setReservedHeight(rows: number): void {
 		this.cachedClusterLines = rows;
 	}
 
-	/** Scroll the content area up by n lines. Clamped during render. */
 	scrollUp(lines = 1): void {
 		if (!this.installed) return;
 		this.scrollOffset += lines;
 		this.wasAtBottom = false;
+		this.clearSelection();
 		this.tui.requestRender();
 	}
 
-	/** Scroll the content area down by n lines. Clamped during render. */
 	scrollDown(lines = 1): void {
 		if (!this.installed) return;
 		this.scrollOffset = Math.max(0, this.scrollOffset - lines);
 		if (this.scrollOffset === 0) this.wasAtBottom = true;
+		this.clearSelection();
 		this.tui.requestRender();
 	}
 
-	/** Scroll to the bottom of the content. */
 	scrollToBottom(): void {
 		if (this.scrollOffset === 0) return;
 		this.scrollOffset = 0;
 		this.wasAtBottom = true;
+		this.clearSelection();
 		this.tui.requestRender();
 	}
 
@@ -165,35 +193,25 @@ export class FixedBottomArea {
 	install(): void {
 		if (this.installed) return;
 
-		// Enter alternate screen with mouse reporting for scroll
 		this.originalWrite(BEGIN_SYNC + ALT_SCREEN_ENTER + ALT_SCROLL_OFF + MOUSE_ENABLE + END_SYNC);
 
-		// Emergency cleanup on process exit
 		const emergencyCleanup = () => {
 			if (this.installed) this.dispose();
 		};
 		process.once("exit", emergencyCleanup);
 
-		// Override terminal.rows: TUI thinks it has fewer rows, renders into
-		// the scrollable area naturally.
 		Object.defineProperty(this.tui.terminal, "rows", {
 			configurable: true,
 			get: () => this.getScrollableRows(),
 		});
 
-		// Patch tui.render: insert scroll offset into the rendered lines
 		this.originalRender = this.tui.render.bind(this.tui);
 		this.tui.render = (width: number) => this.renderScrollable(width);
 
-		// Intercept keyboard input for scroll
 		this.removeInputListener = this.tui.addInputListener((data) => this.handleInput(data));
 
-		// Patch terminal.write: redirect writes into the scroll region
 		this.tui.terminal.write = (data: string) => this.write(data);
 
-		// Patch doRender: repaint cluster after each render cycle.
-		// This is needed because positionHardwareCursor hides the cursor
-		// after our cluster paint shows it.
 		const tuiAny = this.tui as any;
 		this.originalDoRender = tuiAny.doRender?.bind(this.tui);
 		tuiAny.doRender = () => {
@@ -211,17 +229,14 @@ export class FixedBottomArea {
 		if (!this.installed) return;
 		this.installed = false;
 
-		// Restore hidden components
 		for (const [component, originalRender] of this.hiddenComponents) {
 			component.render = originalRender;
 		}
 		this.hiddenComponents.clear();
 
-		// Restore input listener
 		this.removeInputListener?.();
 		this.removeInputListener = null;
 
-		// Restore terminal state
 		this.tui.terminal.write = this.originalWrite;
 		if (this.originalDoRender) {
 			(this.tui as any).doRender = this.originalDoRender;
@@ -230,14 +245,12 @@ export class FixedBottomArea {
 			this.tui.render = this.originalRender;
 		}
 
-		// Restore terminal.rows
 		if (this.originalRowsDescriptor) {
 			Object.defineProperty(this.tui.terminal, "rows", this.originalRowsDescriptor);
 		} else {
 			Reflect.deleteProperty(this.tui.terminal, "rows");
 		}
 
-		// Exit alternate screen
 		this.originalWrite(BEGIN_SYNC + RESET_SCROLL + MOUSE_DISABLE + ALT_SCROLL_ON + ALT_SCREEN_EXIT + END_SYNC);
 	}
 
@@ -271,7 +284,6 @@ export class FixedBottomArea {
 		}
 	}
 
-	/** Compute cluster height, with recursion guard. */
 	private getClusterHeight(_rawRows: number): number {
 		if (!this.renderCluster || this.renderingCluster) return this.cachedClusterLines;
 
@@ -290,10 +302,9 @@ export class FixedBottomArea {
 		if (!this.originalRender) return [];
 
 		const lines = this.originalRender(width);
+		this.scrollableLines = lines;
 		this.lastContentLineCount = lines.length;
 
-		// Auto-scroll: if at bottom and content grew, stay at bottom.
-		// If scrolled up and content grew, maintain relative position.
 		if (lines.length > this.lastContentLineCount + this.scrollOffset) {
 			if (this.wasAtBottom) {
 				this.scrollOffset = 0;
@@ -307,7 +318,11 @@ export class FixedBottomArea {
 		this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, maxScroll));
 
 		const start = Math.max(0, lines.length - scrollableRows - this.scrollOffset);
-		return lines.slice(start, start + scrollableRows);
+		this.visibleScrollStart = start;
+		const visible = lines.slice(start, start + scrollableRows);
+
+		// Apply selection highlighting to visible lines
+		return visible.map((line, i) => this.highlightSelection(line, start + i));
 	}
 
 	private write(data: string): void {
@@ -320,7 +335,6 @@ export class FixedBottomArea {
 			return;
 		}
 
-		// Anchor writes to the correct screen position within the scroll region
 		const hwCursorRow =
 			typeof (this.tui as any).hardwareCursorRow === "number" ? (this.tui as any).hardwareCursorRow : 0;
 		const viewportTop =
@@ -356,7 +370,6 @@ export class FixedBottomArea {
 			buffer += visibleWidth(line) > width ? truncateToWidth(line, width, "", true) : line;
 		}
 
-		// Position hardware cursor within the cluster
 		const showHwCursor = this.tui.getShowHardwareCursor?.() ?? false;
 		if (showHwCursor && cluster.cursorRow >= 0 && cluster.cursorCol >= 0) {
 			buffer += moveCursor(startRow + cluster.cursorRow, Math.max(1, cluster.cursorCol + 1));
@@ -368,24 +381,22 @@ export class FixedBottomArea {
 		return buffer;
 	}
 
+	// ── Input handling ──────────────────────────────────────────────────────
+
 	private handleInput(data: string): { consume?: boolean; data?: string } | undefined {
 		if (!this.installed) return undefined;
 		if (isKeyRelease(data)) return undefined;
 
-		// Parse SGR mouse packets (format: \x1b[<CODE;COL;ROW[Mm])
+		// Parse SGR mouse packets
 		const mousePackets = this.parseSgrMouse(data);
 		if (mousePackets) {
 			for (const packet of mousePackets) {
-				const delta = this.mouseScrollDelta(packet);
-				if (delta !== 0) {
-					if (delta > 0) this.scrollUp(delta);
-					else this.scrollDown(-delta);
-				}
+				this.handleMouse(packet);
 			}
 			return { consume: true };
 		}
 
-		// Keyboard scroll keys: ctrl+shift+up / ctrl+shift+down / pageUp / pageDown
+		// Keyboard scroll
 		if (matchesKey(data, "ctrl+shift+up") || matchesKey(data, "pageUp")) {
 			this.scrollUp(10);
 			return { consume: true };
@@ -395,7 +406,7 @@ export class FixedBottomArea {
 			return { consume: true };
 		}
 
-		// Auto-scroll to bottom when typing printable characters
+		// Auto-scroll to bottom when typing
 		if (!this.isAtBottom() && data.length === 1 && data.charCodeAt(0) >= 32) {
 			this.scrollToBottom();
 		}
@@ -403,13 +414,11 @@ export class FixedBottomArea {
 		return undefined;
 	}
 
-	/**
-	 * Parse SGR mouse packets from input data.
-	 * Format: \x1b[<CODE;COL;ROW[Mm]. Returns null if data is not mouse packets.
-	 */
-	private parseSgrMouse(data: string): Array<{ code: number; col: number; row: number; final: "M" | "m" }> | null {
+	// ── SGR Mouse parsing ───────────────────────────────────────────────────
+
+	private parseSgrMouse(data: string): SgrMousePacket[] | null {
 		const pattern = /\x1b\[<(\d+);(\d+);(\d+)([Mm])/g;
-		const packets: Array<{ code: number; col: number; row: number; final: "M" | "m" }> = [];
+		const packets: SgrMousePacket[] = [];
 		let offset = 0;
 
 		for (const match of data.matchAll(pattern)) {
@@ -426,15 +435,120 @@ export class FixedBottomArea {
 		return packets.length > 0 && offset === data.length ? packets : null;
 	}
 
-	/**
-	 * Extract scroll delta from an SGR mouse packet.
-	 * Base button 64 = scroll up (positive), 65 = scroll down (negative).
-	 */
-	private mouseScrollDelta(packet: { code: number; final: "M" | "m" }): number {
+	private mouseBaseButton(code: number): number {
+		return code & ~(4 | 8 | 16 | 32);
+	}
+
+	private mouseScrollDelta(packet: SgrMousePacket): number {
 		if (packet.final !== "M") return 0;
-		const baseButton = packet.code & ~(4 | 8 | 16 | 32);
-		if (baseButton === 64) return 3;
-		if (baseButton === 65) return -3;
+		const base = this.mouseBaseButton(packet.code);
+		if (base === 64) return 3;
+		if (base === 65) return -3;
 		return 0;
+	}
+
+	private isLeftPress(packet: SgrMousePacket): boolean {
+		return packet.final === "M" && this.mouseBaseButton(packet.code) === 0 && (packet.code & 32) === 0;
+	}
+
+	private isLeftDrag(packet: SgrMousePacket): boolean {
+		return packet.final === "M" && this.mouseBaseButton(packet.code) === 0 && (packet.code & 32) !== 0;
+	}
+
+	// ── Mouse event handling ────────────────────────────────────────────────
+
+	private handleMouse(packet: SgrMousePacket): void {
+		// Scroll wheel
+		const delta = this.mouseScrollDelta(packet);
+		if (delta !== 0) {
+			this.selectionDragging = false;
+			this.clearSelection();
+			if (delta > 0) this.scrollUp(delta);
+			else this.scrollDown(-delta);
+			return;
+		}
+
+		// Left press: start selection
+		if (this.isLeftPress(packet)) {
+			const pos = { line: this.visibleScrollStart + packet.row - 1, col: Math.max(0, packet.col - 1) };
+			this.selectionAnchor = pos;
+			this.selectionFocus = pos;
+			this.selectionDragging = true;
+			this.tui.requestRender();
+			return;
+		}
+
+		// Left drag: update selection focus
+		if (this.selectionDragging && this.isLeftDrag(packet)) {
+			this.selectionFocus = {
+				line: this.visibleScrollStart + packet.row - 1,
+				col: Math.max(0, packet.col - 1),
+			};
+			this.tui.requestRender();
+			return;
+		}
+
+		// Any release: finish selection
+		if (packet.final === "m" && this.selectionDragging) {
+			this.selectionDragging = false;
+			const text = this.getSelectedText();
+			if (text && this.onCopySelection) {
+				this.onCopySelection(text);
+			}
+			this.clearSelection();
+			this.tui.requestRender();
+			return;
+		}
+	}
+
+	// ── Text selection ──────────────────────────────────────────────────────
+
+	private clearSelection(): void {
+		this.selectionAnchor = null;
+		this.selectionFocus = null;
+		this.selectionDragging = false;
+	}
+
+	private getSelectionRange(): { start: SelectionPoint; end: SelectionPoint } | null {
+		if (!this.selectionAnchor || !this.selectionFocus) return null;
+
+		if (comparePoints(this.selectionAnchor, this.selectionFocus) <= 0) {
+			return { start: this.selectionAnchor, end: this.selectionFocus };
+		}
+		return { start: this.selectionFocus, end: this.selectionAnchor };
+	}
+
+	private highlightSelection(line: string, lineIndex: number): string {
+		const range = this.getSelectionRange();
+		if (!range || lineIndex < range.start.line || lineIndex > range.end.line) return line;
+
+		const plain = stripAnsi(line);
+		const startCol = lineIndex === range.start.line ? range.start.col : 0;
+		const endCol = lineIndex === range.end.line ? range.end.col : visibleWidth(plain);
+		if (startCol >= endCol) return line;
+
+		const before = sliceColumns(plain, 0, startCol);
+		const selected = sliceColumns(plain, startCol, endCol);
+		const after = sliceColumns(plain, endCol, Number.POSITIVE_INFINITY);
+
+		return `${before}\x1b[7m${selected}\x1b[27m${after}`;
+	}
+
+	private getSelectedText(): string {
+		const range = this.getSelectionRange();
+		if (!range) return "";
+
+		const selected: string[] = [];
+		for (let i = range.start.line; i <= range.end.line; i++) {
+			const line = stripAnsi(this.scrollableLines[i] ?? "");
+			const startCol = i === range.start.line ? range.start.col : 0;
+			const endCol = i === range.end.line ? range.end.col : visibleWidth(line);
+			selected.push(sliceColumns(line, startCol, endCol));
+		}
+
+		return selected
+			.join("\n")
+			.replace(/[ \t]+$/gm, "")
+			.trimEnd();
 	}
 }
