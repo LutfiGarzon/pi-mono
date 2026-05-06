@@ -1050,11 +1050,12 @@ function detectCompat(model: Model<"openai-completions">): ResolvedOpenAIComplet
 		isZai ||
 		isMoonshot ||
 		provider === "opencode" ||
+		provider === "opencode-go" ||
 		baseUrl.includes("opencode.ai") ||
 		isCloudflareWorkersAI ||
 		isCloudflareAiGateway;
 
-	const isDeepSeek = provider === "deepseek" || baseUrl.includes("deepseek.com");
+	const isDeepSeek = provider === "deepseek" || provider === "opencode-go" || baseUrl.includes("deepseek.com");
 
 	const useMaxTokens = baseUrl.includes("chutes.ai") || isMoonshot || isCloudflareAiGateway || isDeepSeek;
 
