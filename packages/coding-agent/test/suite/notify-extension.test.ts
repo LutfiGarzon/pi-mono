@@ -91,7 +91,7 @@ describe("Notify extension", () => {
 	// ------------------------------------------------------------------
 
 	describe("notify() dispatch on macOS", () => {
-		it("uses notifyMacOS on darwin", () => {
+		it.skipIf(process.platform !== "darwin")("uses notifyMacOS on darwin", () => {
 			mockedExecFile.mockClear();
 			notify("Pi", "Test");
 			expect(mockedExecFile).toHaveBeenCalled();
