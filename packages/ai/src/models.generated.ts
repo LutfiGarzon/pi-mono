@@ -4449,7 +4449,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null},
+			thinkingLevelMap: {"off":null,"minimal":"MINIMAL","low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 0.25,
@@ -7498,7 +7498,7 @@ export const MODELS = {
 			baseUrl: "https://opencode.ai/zen/v1",
 			compat: {"requiresReasoningContentOnAssistantMessages":true,"thinkingFormat":"deepseek"},
 			reasoning: true,
-			thinkingLevelMap: {"minimal":null,"low":null,"medium":null,"high":"high","xhigh":"max"},
+			thinkingLevelMap: {"minimal":null,"low":"low","medium":"medium","high":"high","xhigh":"max"},
 			input: ["text"],
 			cost: {
 				input: 0,
@@ -8996,7 +8996,7 @@ export const MODELS = {
 			baseUrl: "https://openrouter.ai/api/v1",
 			compat: {"requiresReasoningContentOnAssistantMessages":true,"thinkingFormat":"deepseek"},
 			reasoning: true,
-			thinkingLevelMap: {"minimal":null,"low":null,"medium":null,"high":"high","xhigh":"max"},
+			thinkingLevelMap: {"minimal":null,"low":"low","medium":"medium","high":"high","xhigh":"max"},
 			input: ["text"],
 			cost: {
 				input: 0,
