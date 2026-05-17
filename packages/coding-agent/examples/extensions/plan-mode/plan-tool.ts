@@ -1,5 +1,5 @@
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { Spacer, Text } from "@mariozechner/pi-tui";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { Spacer, Text } from "@earendil-works/pi-tui";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { type Static, Type } from "typebox";
