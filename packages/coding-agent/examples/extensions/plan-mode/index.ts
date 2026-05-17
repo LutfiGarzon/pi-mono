@@ -12,6 +12,7 @@
  */
 
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
+
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Key } from "@earendil-works/pi-tui";
 import { registerAskTool } from "./ask-tool.js";

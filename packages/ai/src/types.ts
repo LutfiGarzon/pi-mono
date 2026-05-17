@@ -43,6 +43,7 @@ export type KnownProvider =
 	| "moonshotai-cn"
 	| "huggingface"
 	| "fireworks"
+	| "together"
 	| "opencode"
 	| "opencode-go"
 	| "kimi-coding"
@@ -380,8 +381,8 @@ export interface OpenAICompletionsCompat {
 	requiresThinkingAsText?: boolean;
 	/** Whether all replayed assistant messages must include an empty reasoning_content field when reasoning is enabled. Default: auto-detected from URL. */
 	requiresReasoningContentOnAssistantMessages?: boolean;
-	/** Format for reasoning/thinking parameter. "openai" uses reasoning_effort, "openrouter" uses reasoning: { effort }, "deepseek" uses thinking: { type } plus reasoning_effort, "zai" uses top-level enable_thinking: boolean, "qwen" uses top-level enable_thinking: boolean, and "qwen-chat-template" uses chat_template_kwargs.enable_thinking. Default: "openai". */
-	thinkingFormat?: "openai" | "openrouter" | "deepseek" | "zai" | "qwen" | "qwen-chat-template";
+	/** Format for reasoning/thinking parameter. "openai" uses reasoning_effort, "openrouter" uses reasoning: { effort }, "deepseek" uses thinking: { type } plus reasoning_effort, "together" uses reasoning: { enabled } plus reasoning_effort when supported, "zai" uses top-level enable_thinking: boolean, "qwen" uses top-level enable_thinking: boolean, and "qwen-chat-template" uses chat_template_kwargs.enable_thinking. Default: "openai". */
+	thinkingFormat?: "openai" | "openrouter" | "deepseek" | "together" | "zai" | "qwen" | "qwen-chat-template";
 	/** OpenRouter-specific routing preferences. Only used when baseUrl points to OpenRouter. */
 	openRouterRouting?: OpenRouterRouting;
 	/** Vercel AI Gateway routing preferences. Only used when baseUrl points to Vercel AI Gateway. */
@@ -418,6 +419,22 @@ export interface AnthropicMessagesCompat {
 	supportsEagerToolInputStreaming?: boolean;
 	/** Whether the provider supports Anthropic long cache retention (`cache_control.ttl: "1h"`). Default: true. */
 	supportsLongCacheRetention?: boolean;
+	/**
+	 * Whether to send the `x-session-affinity` header from `options.sessionId`
+	 * when caching is enabled. Required for providers like Fireworks that use
+	 * session affinity for prompt cache routing (requests to the same replica
+	 * maximize cache hits).
+	 * Default: false.
+	 */
+	sendSessionAffinityHeaders?: boolean;
+	/**
+	 * Whether the provider supports Anthropic-style `cache_control` markers on
+	 * tool definitions. When false, `cache_control` is omitted from tool params.
+	 * Some Anthropic-compatible providers (e.g., Fireworks) do not support this
+	 * field on tools and may reject or ignore it.
+	 * Default: true.
+	 */
+	supportsCacheControlOnTools?: boolean;
 }
 
 /**
