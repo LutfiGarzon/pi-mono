@@ -11,9 +11,9 @@
  * - Progress tracking widget during execution
  */
 
-import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { Key } from "@mariozechner/pi-tui";
+import type { AgentMessage } from "@earendil-works/pi-agent-core";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { Key } from "@earendil-works/pi-tui";
 import { registerAskTool } from "./ask-tool.js";
 import { registerPlanTool } from "./plan-tool.js";
 import { getLatestPlanFile, isSafeCommand, parsePlanFile, type TodoItem } from "./utils.js";

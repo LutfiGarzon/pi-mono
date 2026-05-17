@@ -3,6 +3,9 @@ export { Type } from "typebox";
 
 export * from "./api-registry.js";
 export * from "./env-api-keys.js";
+export * from "./image-models.js";
+export * from "./images.js";
+export * from "./images-api-registry.js";
 export * from "./models.js";
 export type { BedrockOptions, BedrockThinkingDisplay } from "./providers/amazon-bedrock.js";
 export type { AnthropicEffort, AnthropicOptions, AnthropicThinkingDisplay } from "./providers/anthropic.js";
@@ -11,6 +14,7 @@ export * from "./providers/faux.js";
 export type { GoogleOptions } from "./providers/google.js";
 export type { GoogleThinkingLevel } from "./providers/google-shared.js";
 export type { GoogleVertexOptions } from "./providers/google-vertex.js";
+export * from "./providers/images/register-builtins.js";
 export type { MistralOptions } from "./providers/mistral.js";
 export type {
 	OpenAICodexResponsesOptions,
@@ -34,6 +38,8 @@ export type {
 	OAuthProviderId,
 	OAuthProviderInfo,
 	OAuthProviderInterface,
+	OAuthSelectOption,
+	OAuthSelectPrompt,
 } from "./utils/oauth/types.js";
 export * from "./utils/overflow.js";
 export * from "./utils/typebox-helpers.js";

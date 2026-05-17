@@ -1,5 +1,5 @@
-import { Type } from "@mariozechner/pi-ai";
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { Type } from "@earendil-works/pi-ai";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { execSync } from "child_process";
 
 export default function pinchtabExtension(pi: ExtensionAPI) {
@@ -21,7 +21,7 @@ export default function pinchtabExtension(pi: ExtensionAPI) {
 		parameters: Type.Object({
 			url: Type.String({ description: "The URL to open" }),
 		}),
-		execute: async (_toolCallId, { url }) => {
+		execute: async (_toolCallId: string, { url }: { url: string }) => {
 			const result = runPinchtab(["nav", url]);
 			return { content: [{ type: "text", text: result }], details: { url } };
 		},
@@ -32,7 +32,7 @@ export default function pinchtabExtension(pi: ExtensionAPI) {
 		label: "Browser Snapshot",
 		description: "Get a snapshot of the current page's interactive elements",
 		parameters: Type.Object({}),
-		execute: async () => {
+		execute: async (_toolCallId: string, _params: Record<string, never>) => {
 			const result = runPinchtab(["snap", "-i", "-c"]);
 			return { content: [{ type: "text", text: result }], details: {} };
 		},
@@ -45,7 +45,7 @@ export default function pinchtabExtension(pi: ExtensionAPI) {
 		parameters: Type.Object({
 			ref: Type.String({ description: "The element reference (e.g., e0)" }),
 		}),
-		execute: async (_toolCallId, { ref }) => {
+		execute: async (_toolCallId: string, { ref }: { ref: string }) => {
 			const result = runPinchtab(["click", ref]);
 			return { content: [{ type: "text", text: result }], details: { ref } };
 		},
@@ -58,7 +58,7 @@ export default function pinchtabExtension(pi: ExtensionAPI) {
 		parameters: Type.Object({
 			target: Type.String({ description: "The element reference (e.g., e0) or pixels (e.g., 500)" }),
 		}),
-		execute: async (_toolCallId, { target }) => {
+		execute: async (_toolCallId: string, { target }: { target: string }) => {
 			const result = runPinchtab(["scroll", target]);
 			return { content: [{ type: "text", text: result }], details: { target } };
 		},
@@ -72,7 +72,7 @@ export default function pinchtabExtension(pi: ExtensionAPI) {
 			ref: Type.String({ description: "The element reference" }),
 			text: Type.String({ description: "The text to type" }),
 		}),
-		execute: async (_toolCallId, { ref, text }) => {
+		execute: async (_toolCallId: string, { ref, text }: { ref: string; text: string }) => {
 			// Use 'fill' for direct text entry
 			const result = runPinchtab(["fill", ref, `"${text.replace(/"/g, '\\"')}"`]);
 			return { content: [{ type: "text", text: result }], details: { ref, text } };
@@ -87,7 +87,7 @@ export default function pinchtabExtension(pi: ExtensionAPI) {
 			ref: Type.String({ description: "The element reference" }),
 			key: Type.String({ description: "The key to press (e.g., Enter)" }),
 		}),
-		execute: async (_toolCallId, { ref, key }) => {
+		execute: async (_toolCallId: string, { ref, key }: { ref: string; key: string }) => {
 			const result = runPinchtab(["press", ref, key]);
 			return { content: [{ type: "text", text: result }], details: { ref, key } };
 		},

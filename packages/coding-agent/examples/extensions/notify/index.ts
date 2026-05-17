@@ -17,8 +17,13 @@ import { execFile } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { completeSimple, getEnvApiKey, getModel } from "@mariozechner/pi-ai";
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { completeSimple, getEnvApiKey, getModel } from "@earendil-works/pi-ai";
+import type {
+	AgentEndEvent,
+	ExtensionAPI,
+	ExtensionCommandContext,
+	ExtensionContext,
+} from "@earendil-works/pi-coding-agent";
 
 // ---------------------------------------------------------------------------
 // Notification icon (optional, macOS only)
@@ -296,7 +301,7 @@ export default function (pi: ExtensionAPI) {
 		settings = loadSettings();
 	});
 
-	pi.on("agent_end", async (_event, ctx) => {
+	pi.on("agent_end", async (_event: AgentEndEvent, ctx: ExtensionContext) => {
 		if (ctx.hasPendingMessages()) return;
 
 		if (settings.smartEnabled) {
@@ -338,7 +343,7 @@ export default function (pi: ExtensionAPI) {
 
 	pi.registerCommand("notify-settings", {
 		description: "Configure notification settings (smart mode, personality, model)",
-		handler: async (_args, ctx) => {
+		handler: async (_args: string, ctx: ExtensionCommandContext) => {
 			settings = loadSettings();
 
 			while (true) {
