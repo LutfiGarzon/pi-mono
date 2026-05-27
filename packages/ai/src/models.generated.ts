@@ -4768,7 +4768,7 @@ export const MODELS = {
 			provider: "google",
 			baseUrl: "https://generativelanguage.googleapis.com/v1beta",
 			reasoning: true,
-			thinkingLevelMap: {"off":null},
+			thinkingLevelMap: {"off":null,"minimal":"MINIMAL","low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 1.5,
@@ -8049,7 +8049,7 @@ export const MODELS = {
 			provider: "opencode",
 			baseUrl: "https://opencode.ai/zen/v1",
 			reasoning: true,
-			thinkingLevelMap: {"off":null},
+			thinkingLevelMap: {"off":null,"minimal":"MINIMAL","low":"LOW","medium":"MEDIUM","high":"HIGH"},
 			input: ["text", "image"],
 			cost: {
 				input: 1.5,
