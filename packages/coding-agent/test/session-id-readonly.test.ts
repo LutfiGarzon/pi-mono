@@ -1,5 +1,14 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	realpathSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -15,7 +24,7 @@ afterEach(() => {
 });
 
 function createTempDir(): string {
-	const dir = mkdtempSync(join(tmpdir(), "pi-session-id-readonly-"));
+	const dir = realpathSync(mkdtempSync(join(tmpdir(), "pi-session-id-readonly-")));
 	tempDirs.push(dir);
 	return dir;
 }
@@ -61,10 +70,63 @@ async function runCli(
 
 	let stderr = "";
 	const code = await new Promise<number | null>((resolvePromise, reject) => {
+		const childEnv: Record<string, string | undefined> = { ...process.env };
+		const keysToStrip = [
+			"ANTHROPIC_API_KEY",
+			"ANTHROPIC_OAUTH_TOKEN",
+			"OPENAI_API_KEY",
+			"AZURE_OPENAI_API_KEY",
+			"DEEPSEEK_API_KEY",
+			"GEMINI_API_KEY",
+			"GOOGLE_CLOUD_API_KEY",
+			"GROQ_API_KEY",
+			"CEREBRAS_API_KEY",
+			"XAI_API_KEY",
+			"OPENROUTER_API_KEY",
+			"ZAI_API_KEY",
+			"MISTRAL_API_KEY",
+			"MINIMAX_API_KEY",
+			"MINIMAX_CN_API_KEY",
+			"MOONSHOT_API_KEY",
+			"KIMI_API_KEY",
+			"HF_TOKEN",
+			"FIREWORKS_API_KEY",
+			"TOGETHER_API_KEY",
+			"AI_GATEWAY_API_KEY",
+			"OPENCODE_API_KEY",
+			"CLOUDFLARE_API_KEY",
+			"CLOUDFLARE_ACCOUNT_ID",
+			"CLOUDFLARE_GATEWAY_ID",
+			"XIAOMI_API_KEY",
+			"XIAOMI_TOKEN_PLAN_CN_API_KEY",
+			"XIAOMI_TOKEN_PLAN_AMS_API_KEY",
+			"XIAOMI_TOKEN_PLAN_SGP_API_KEY",
+			"COPILOT_GITHUB_TOKEN",
+			"GH_TOKEN",
+			"GITHUB_TOKEN",
+			"GOOGLE_APPLICATION_CREDENTIALS",
+			"GOOGLE_CLOUD_PROJECT",
+			"GCLOUD_PROJECT",
+			"GOOGLE_CLOUD_LOCATION",
+			"AWS_PROFILE",
+			"AWS_ACCESS_KEY_ID",
+			"AWS_SECRET_ACCESS_KEY",
+			"AWS_SESSION_TOKEN",
+			"AWS_REGION",
+			"AWS_DEFAULT_REGION",
+			"AWS_BEARER_TOKEN_BEDROCK",
+			"AWS_CONTAINER_CREDENTIALS_RELATIVE_URI",
+			"AWS_CONTAINER_CREDENTIALS_FULL_URI",
+			"AWS_WEB_IDENTITY_TOKEN_FILE",
+			"BEDROCK_EXTENSIVE_MODEL_TEST",
+		];
+		for (const key of keysToStrip) {
+			delete childEnv[key];
+		}
 		const child = spawn(process.execPath, [cliPath, ...resolvedArgs], {
 			cwd: dirs.projectDir,
 			env: {
-				...process.env,
+				...childEnv,
 				[ENV_AGENT_DIR]: dirs.agentDir,
 				PI_OFFLINE: "1",
 				TSX_TSCONFIG_PATH: resolve(__dirname, "../../../tsconfig.json"),
