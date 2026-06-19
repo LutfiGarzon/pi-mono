@@ -1,3 +1,3 @@
-export { NodeExecutionEnv } from "./env/nodejs.js";
-export type { ExecutionEnv, ExecutionEnvExecOptions, FileErrorCode, FileInfo, FileKind } from "./types.js";
-export { FileError } from "./types.js";
+export { NodeExecutionEnv } from "./env/nodejs.ts";
+export type { ExecutionEnv, ExecutionEnvExecOptions, FileErrorCode, FileInfo, FileKind } from "./types.ts";
+export { FileError } from "./types.ts";

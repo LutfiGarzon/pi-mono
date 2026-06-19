@@ -3,7 +3,7 @@ import { createReadStream } from "node:fs";
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { createInterface } from "node:readline";
-import type { JsonlSessionMetadata, SessionStorage, SessionTreeEntry } from "../../types.js";
+import type { JsonlSessionMetadata, SessionStorage, SessionTreeEntry } from "../../types.ts";
 
 interface SessionHeader {
 	type: "session";

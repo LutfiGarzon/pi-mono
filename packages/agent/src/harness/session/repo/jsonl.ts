@@ -7,9 +7,9 @@ import type {
 	JsonlSessionMetadata,
 	JsonlSessionRepoApi,
 	Session,
-} from "../../types.js";
-import { JsonlSessionStorage, loadJsonlSessionMetadata } from "../storage/jsonl.js";
-import { createSessionId, createTimestamp, getEntriesToFork, toSession } from "./shared.js";
+} from "../../types.ts";
+import { JsonlSessionStorage, loadJsonlSessionMetadata } from "../storage/jsonl.ts";
+import { createSessionId, createTimestamp, getEntriesToFork, toSession } from "./shared.ts";
 
 async function exists(path: string): Promise<boolean> {
 	try {

@@ -1,8 +1,8 @@
 import { getModel } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { NodeExecutionEnv } from "../../src/harness/execution-env.js";
-import { createAgentHarness, createSession } from "../../src/harness/factory.js";
-import { InMemorySessionStorage } from "../../src/harness/session/storage/memory.js";
+import { NodeExecutionEnv } from "../../src/harness/execution-env.ts";
+import { createAgentHarness, createSession } from "../../src/harness/factory.ts";
+import { InMemorySessionStorage } from "../../src/harness/session/storage/memory.ts";
 
 describe("harness factories", () => {
 	it("creates sessions from storage", async () => {

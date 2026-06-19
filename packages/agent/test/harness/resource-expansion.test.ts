@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { expandPromptTemplate } from "../../src/harness/prompt-templates.js";
-import { expandSkillCommand } from "../../src/harness/skills.js";
+import { expandPromptTemplate } from "../../src/harness/prompt-templates.ts";
+import { expandSkillCommand } from "../../src/harness/skills.ts";
 
 describe("resource expansion helpers", () => {
 	it("expands skills with additional instructions", () => {
