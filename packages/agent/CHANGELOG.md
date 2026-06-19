@@ -2,22 +2,6 @@
 
 ## [Unreleased]
 
-## [0.70.6] - 2026-04-28
-
-## [0.70.5] - 2026-04-27
-
-## [0.70.4] - 2026-04-27
-
-## [0.70.3] - 2026-04-27
-
-## [0.70.2] - 2026-04-24
-
-## [0.70.1] - 2026-04-24
-
-## [0.70.0] - 2026-04-23
-
-## [0.69.0] - 2026-04-22
-
 ### Fixed
 
 - Fixed Node execution environment commands through legacy WSL `bash.exe` to pass scripts over stdin so shell variables expand in the target bash ([#5893](https://github.com/earendil-works/pi/issues/5893)).
