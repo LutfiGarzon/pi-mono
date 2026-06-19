@@ -1246,6 +1246,6 @@ function mapStopReason(
 			return { stopReason: "error" };
 		default:
 			// Handle unknown stop reasons gracefully (API may add new values)
-			return "error";
+			return { stopReason: "error" };
 	}
 }
