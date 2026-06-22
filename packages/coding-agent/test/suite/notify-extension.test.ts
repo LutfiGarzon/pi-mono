@@ -7,13 +7,7 @@ vi.mock("node:child_process", () => ({
 }));
 
 import { execFile } from "node:child_process";
-import {
-	notify,
-	notifyMacOS,
-	notifyOSC99,
-	notifyOSC777,
-	notifyWindows,
-} from "../../examples/extensions/notify/index";
+import { notify, notifyMacOS, notifyOSC99, notifyOSC777, notifyWindows } from "../../examples/extensions/notify/index";
 
 const mockedExecFile = vi.mocked(execFile);
 
