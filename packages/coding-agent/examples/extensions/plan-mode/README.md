@@ -4,9 +4,7 @@ Read-only exploration mode for safe code analysis.
 
 ## Features
 
-- **Read-only tools**: Restricts available tools to read, bash, grep, find, ls, question
-- **Built-in `plan` tool**: A tool for creating and updating a markdown plan inside the `.pi/plan` folder.
-- **Built-in `ask` tool**: A tool for explicitly asking the user multiple-choice questions or confirmations.
+- **Built-in write tools disabled**: Disables edit/write while preserving other active tools
 - **Bash allowlist**: Only read-only bash commands are allowed
 - **Plan extraction**: Extracts numbered steps from `Plan:` sections
 - **Progress tracking**: Widget shows completion status during execution
@@ -39,7 +37,8 @@ Plan:
 ## How It Works
 
 ### Plan Mode (Read-Only)
-- Only read-only tools available
+- Built-in edit/write tools disabled
+- Other active tools remain available
 - Bash commands filtered through allowlist
 - Agent creates a plan without making changes
 
