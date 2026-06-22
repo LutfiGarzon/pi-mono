@@ -4,11 +4,11 @@ import { html } from "lit";
 import { createRef, ref } from "lit/directives/ref.js";
 import { FileText } from "lucide";
 import { type Static, Type } from "typebox";
-import { EXTRACT_DOCUMENT_DESCRIPTION } from "../prompts/prompts.js";
-import { loadAttachment } from "../utils/attachment-utils.js";
-import { isCorsError } from "../utils/proxy-utils.js";
-import { registerToolRenderer, renderCollapsibleHeader, renderHeader } from "./renderer-registry.js";
-import type { ToolRenderer, ToolRenderResult } from "./types.js";
+import { EXTRACT_DOCUMENT_DESCRIPTION } from "../prompts/prompts";
+import { loadAttachment } from "../utils/attachment-utils";
+import { isCorsError } from "../utils/proxy-utils";
+import { registerToolRenderer, renderCollapsibleHeader, renderHeader } from "./renderer-registry";
+import type { ToolRenderer, ToolRenderResult } from "./types";
 
 // ============================================================================
 // TYPES

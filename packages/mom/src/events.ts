@@ -2,9 +2,9 @@ import { Cron } from "croner";
 import { existsSync, type FSWatcher, mkdirSync, readdirSync, statSync, unlinkSync } from "fs";
 import { readFile } from "fs/promises";
 import { join } from "path";
-import { closeWatcher, FS_WATCH_RETRY_DELAY_MS, watchWithErrorHandler } from "./fs-watch.js";
-import * as log from "./log.js";
-import type { SlackBot, SlackEvent } from "./slack.js";
+import { closeWatcher, FS_WATCH_RETRY_DELAY_MS, watchWithErrorHandler } from "./fs-watch";
+import * as log from "./log";
+import type { SlackBot, SlackEvent } from "./slack";
 
 // ============================================================================
 // Event Types

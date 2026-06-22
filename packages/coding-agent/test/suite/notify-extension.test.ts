@@ -1,6 +1,6 @@
 import { fauxAssistantMessage } from "@earendil-works/pi-ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createHarness, type Harness } from "./harness.js";
+import { createHarness, type Harness } from "./harness";
 
 vi.mock("node:child_process", () => ({
 	execFile: vi.fn(),
@@ -13,7 +13,7 @@ import {
 	notifyOSC99,
 	notifyOSC777,
 	notifyWindows,
-} from "../../examples/extensions/notify/index.js";
+} from "../../examples/extensions/notify/index";
 
 const mockedExecFile = vi.mocked(execFile);
 

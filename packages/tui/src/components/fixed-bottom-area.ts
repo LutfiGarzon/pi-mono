@@ -1,6 +1,6 @@
-import { isKeyRelease, matchesKey } from "../keys.js";
-import type { Component, TUI } from "../tui.js";
-import { truncateToWidth, visibleWidth } from "../utils.js";
+import { isKeyRelease, matchesKey } from "../keys";
+import type { Component, TUI } from "../tui";
+import { truncateToWidth, visibleWidth } from "../utils";
 
 // ── Terminal escape sequences ───────────────────────────────────────────────
 
