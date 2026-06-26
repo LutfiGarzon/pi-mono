@@ -1,6 +1,6 @@
-import { isKeyRelease, matchesKey } from "../keys";
-import type { Component, TUI } from "../tui";
-import { truncateToWidth, visibleWidth } from "../utils";
+import { isKeyRelease, matchesKey } from "../keys.ts";
+import type { Component, TUI } from "../tui.ts";
+import { truncateToWidth, visibleWidth } from "../utils.ts";
 
 // ── Terminal escape sequences ───────────────────────────────────────────────
 
@@ -208,7 +208,7 @@ export class FixedBottomArea {
 		this.originalRender = this.tui.render.bind(this.tui);
 		this.tui.render = (width: number) => this.renderScrollable(width);
 
-		this.removeInputListener = this.tui.addInputListener((data) => this.handleInput(data));
+		this.removeInputListener = this.tui.addInputListener((data: string) => this.handleInput(data));
 
 		this.tui.terminal.write = (data: string) => this.write(data);
 

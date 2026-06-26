@@ -24,6 +24,9 @@ afterEach(() => {
 });
 
 function createTempDir(): string {
+	// realpath: on macOS tmpdir() is a symlink (/var -> /private/var), but the
+	// spawned CLI sees the physical path via process.cwd(). Session cwd
+	// filtering compares paths textually, so the fixture must use physical paths.
 	const dir = realpathSync(mkdtempSync(join(tmpdir(), "pi-session-id-readonly-")));
 	tempDirs.push(dir);
 	return dir;
@@ -156,6 +159,13 @@ describe("--session-id read-only commands", () => {
 
 		expect(result.code).toBe(0);
 		expect(hasSessionWithId(join(result.agentDir, "sessions"), "read-only-help")).toBe(false);
+	});
+
+	it("allows --no-session with --session-id", async () => {
+		const result = await runCli(["--no-session", "--session-id", "ephemeral-id", "--help"]);
+
+		expect(result.code).toBe(0);
+		expect(hasSessionWithId(join(result.agentDir, "sessions"), "ephemeral-id")).toBe(false);
 	});
 
 	it("does not reserve a session for --list-models", async () => {
