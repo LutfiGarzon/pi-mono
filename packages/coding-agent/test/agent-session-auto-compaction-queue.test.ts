@@ -2,8 +2,12 @@ import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Agent } from "@earendil-works/pi-agent-core";
-import { type AssistantMessage, createAssistantMessageEventStream, fauxAssistantMessage } from "@earendil-works/pi-ai";
-import { getModel } from "@earendil-works/pi-ai/compat";
+import {
+	type AssistantMessage,
+	createAssistantMessageEventStream,
+	fauxAssistantMessage,
+	type Model,
+} from "@earendil-works/pi-ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AgentSession } from "../src/core/agent-session.ts";
 import { AuthStorage } from "../src/core/auth-storage.ts";
@@ -11,6 +15,26 @@ import { ModelRegistry } from "../src/core/model-registry.ts";
 import { SessionManager } from "../src/core/session-manager.ts";
 import { SettingsManager } from "../src/core/settings-manager.ts";
 import { createTestResourceLoader } from "./utilities.ts";
+
+/**
+ * Small fixed-context-window model for compaction tests. Using a dedicated
+ * test model keeps the assertions stable independent of upstream catalog
+ * changes (e.g. claude-sonnet-4-5's window growing from 200k to 1M).
+ */
+function createTestModel(contextWindow: number): Model<"anthropic-messages"> {
+	return {
+		id: "compaction-test-model",
+		name: "Compaction Test Model",
+		api: "anthropic-messages",
+		provider: "anthropic",
+		baseUrl: "https://api.anthropic.com",
+		reasoning: false,
+		input: ["text"],
+		cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+		contextWindow,
+		maxTokens: 8192,
+	};
+}
 
 describe("AgentSession auto-compaction queue resume", () => {
 	let session: AgentSession;
@@ -23,7 +47,7 @@ describe("AgentSession auto-compaction queue resume", () => {
 		mkdirSync(tempDir, { recursive: true });
 		vi.useFakeTimers();
 
-		const model = getModel("anthropic", "claude-sonnet-4-5")!;
+		const model = createTestModel(16_000);
 		const agent = new Agent({
 			initialState: {
 				model,
@@ -248,8 +272,8 @@ describe("AgentSession auto-compaction queue resume", () => {
 	it("should trigger threshold compaction for error messages using last successful usage", async () => {
 		const model = session.model!;
 
-		// A successful assistant message with high token usage (above the threshold
-		// for the 1M-token Claude Sonnet 4.5 context window used in this test).
+		// A successful assistant message with high token usage that crosses the
+		// test model's small context window (see createTestModel in beforeEach).
 		const successfulAssistant: AssistantMessage = {
 			role: "assistant",
 			content: [{ type: "text", text: "large successful response" }],
@@ -257,11 +281,11 @@ describe("AgentSession auto-compaction queue resume", () => {
 			provider: model.provider,
 			model: model.id,
 			usage: {
-				input: 990_000,
-				output: 5_000,
+				input: 180_000,
+				output: 10_000,
 				cacheRead: 0,
 				cacheWrite: 0,
-				totalTokens: 995_000,
+				totalTokens: 190_000,
 				cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
 			},
 			stopReason: "stop",
