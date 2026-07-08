@@ -216,6 +216,7 @@ export {
 	type CustomEntry,
 	type CustomMessageEntry,
 	type FileEntry,
+	getGitBranch,
 	getLatestCompactionEntry,
 	type ModelChangeEntry,
 	migrateSessionEntries,

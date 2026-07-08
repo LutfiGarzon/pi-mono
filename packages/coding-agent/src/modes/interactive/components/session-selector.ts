@@ -307,7 +307,7 @@ class SessionList implements Component, Focusable {
 	public onDeleteSession?: (sessionPath: string) => Promise<void>;
 	public onRenameSession?: (sessionPath: string) => void;
 	public onError?: (message: string) => void;
-	private maxVisible: number = 10; // Max sessions visible (one line each)
+	private maxVisible: number = 6; // Max sessions visible. Each session can take up to 2 lines (message + branch).
 
 	// Focusable implementation - propagate to searchInput for IME cursor positioning
 	private _focused = false;
@@ -507,6 +507,19 @@ class SessionList implements Component, Focusable {
 				line = theme.bg("selectedBg", line);
 			}
 			lines.push(truncateToWidth(line, width));
+
+			// Optional second line: git branch. Always shown in full when present
+			// (branch names are short) and aligned under the message column.
+			if (session.branch) {
+				const indentWidth = 2 + visibleWidth(prefix); // cursor + tree prefix
+				const indent = " ".repeat(indentWidth);
+				const branchLabel = `⎇ ${session.branch}`;
+				const truncatedBranch = truncateToWidth(branchLabel, Math.max(10, width - indentWidth), "…");
+				const branchLine = indent + theme.fg("accent", truncatedBranch);
+				const padded = branchLine.padEnd(width, " ");
+				const finalLine = isSelected ? theme.bg("selectedBg", padded) : padded;
+				lines.push(truncateToWidth(finalLine, width));
+			}
 		}
 
 		// Add scroll indicator if needed

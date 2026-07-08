@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { type AgentMessage, uuidv7 } from "@earendil-works/pi-agent-core";
 import type { ImageContent, Message, TextContent } from "@earendil-works/pi-ai";
 import { randomUUID } from "crypto";
@@ -36,6 +37,8 @@ export interface SessionHeader {
 	timestamp: string;
 	cwd: string;
 	parentSession?: string;
+	/** Git branch recorded at session creation. Omitted when not in a git repo, git is unavailable, or HEAD is detached. */
+	branch?: string;
 }
 
 export interface NewSessionOptions {
@@ -176,6 +179,8 @@ export interface SessionInfo {
 	name?: string;
 	/** Path to the parent session (if this session was forked). */
 	parentSessionPath?: string;
+	/** Git branch recorded at session creation. Omitted when not in a git repo, git is unavailable, or HEAD is detached. */
+	branch?: string;
 	created: Date;
 	modified: Date;
 	messageCount: number;
@@ -203,6 +208,30 @@ export type ReadonlySessionManager = Pick<
 
 function createSessionId(): string {
 	return uuidv7();
+}
+
+/**
+ * Detect the current git branch for a working directory.
+ * Returns undefined when not in a git repo, git is not installed, the call times out,
+ * or HEAD is detached (in which case `git rev-parse --abbrev-ref HEAD` returns "HEAD",
+ * which is not a useful branch label for the picker).
+ *
+ * Exposed for reuse (e.g. prompt templates) and for testing.
+ */
+export function getGitBranch(cwd: string): string | undefined {
+	try {
+		const result = spawnSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
+			cwd,
+			timeout: 200,
+			stdio: ["ignore", "pipe", "ignore"],
+		});
+		if (result.status !== 0) return undefined;
+		const branch = result.stdout?.toString("utf8").trim();
+		if (!branch || branch === "HEAD") return undefined;
+		return branch;
+	} catch {
+		return undefined;
+	}
 }
 
 export function assertValidSessionId(id: string): void {
@@ -678,6 +707,7 @@ async function buildSessionInfo(filePath: string): Promise<SessionInfo | null> {
 			cwd,
 			name,
 			parentSessionPath,
+			branch: header.branch,
 			created: new Date(header.timestamp),
 			modified,
 			messageCount,
@@ -853,6 +883,7 @@ export class SessionManager {
 		}
 		this.sessionId = options?.id ?? createSessionId();
 		const timestamp = new Date().toISOString();
+		const branch = getGitBranch(this.cwd);
 		const header: SessionHeader = {
 			type: "session",
 			version: CURRENT_SESSION_VERSION,
@@ -860,6 +891,7 @@ export class SessionManager {
 			timestamp,
 			cwd: this.cwd,
 			parentSession: options?.parentSession,
+			branch,
 		};
 		this.fileEntries = [header];
 		this.byId.clear();
@@ -1342,6 +1374,7 @@ export class SessionManager {
 		const fileTimestamp = timestamp.replace(/[:.]/g, "-");
 		const newSessionFile = join(this.getSessionDir(), `${fileTimestamp}_${newSessionId}.jsonl`);
 
+		const currentHeader = this.getHeader();
 		const header: SessionHeader = {
 			type: "session",
 			version: CURRENT_SESSION_VERSION,
@@ -1349,6 +1382,7 @@ export class SessionManager {
 			timestamp,
 			cwd: this.cwd,
 			parentSession: this.persist ? previousSessionFile : undefined,
+			branch: currentHeader?.branch,
 		};
 
 		// Collect labels for entries in the path
@@ -1515,6 +1549,7 @@ export class SessionManager {
 			timestamp,
 			cwd: resolvedTargetCwd,
 			parentSession: resolvedSourcePath,
+			branch: getGitBranch(resolvedTargetCwd),
 		};
 		writeFileSync(newSessionFile, `${JSON.stringify(newHeader)}\n`, { flag: "wx" });
 

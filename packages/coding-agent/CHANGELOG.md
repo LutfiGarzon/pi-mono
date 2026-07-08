@@ -6,6 +6,7 @@
 
 - Added public SDK exports for CLI-equivalent model and scoped-model resolution ([#6201](https://github.com/earendil-works/pi/issues/6201)).
 - Added extension entry renderers for persisted display-only session entries that are rendered in interactive mode without being sent to the model context.
+- Added git branch metadata to sessions (recorded at session creation in the session header) and rendered it on a second line in the `pi -r` session picker so sessions on the same folder but different branches are easy to tell apart; the branch is also included in the picker search text. Sessions on non-git directories, when git is unavailable, or with detached HEAD omit the field.
 
 ### Fixed
 
