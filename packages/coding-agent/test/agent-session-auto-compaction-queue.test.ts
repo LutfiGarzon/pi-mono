@@ -17,11 +17,18 @@ import { SettingsManager } from "../src/core/settings-manager.ts";
 import { createTestResourceLoader } from "./utilities.ts";
 
 /**
- * Small fixed-context-window model for compaction tests. Using a dedicated
- * test model keeps the assertions stable independent of upstream catalog
- * changes (e.g. claude-sonnet-4-5's window growing from 200k to 1M).
+ * Dedicated test model for compaction tests. Using a fixed-window model
+ * keeps the assertions stable independent of upstream catalog changes
+ * (e.g. claude-sonnet-4-5's window growing from 200k to 1M).
+ *
+ * The 200_000 window matches the value the test fixtures were originally
+ * written against: 190_000 total tokens exceeds the default reserve (16_384),
+ * so shouldCompact(190_000, 200_000, default) is true. The 100-token and
+ * 0-usage fixtures fall into window-independent code paths (direct
+ * _runAutoCompaction call, no-prior-usage early return, pre-compaction
+ * guard) so they pass regardless of the window.
  */
-function createTestModel(contextWindow: number): Model<"anthropic-messages"> {
+function createTestModel(contextWindow = 200_000): Model<"anthropic-messages"> {
 	return {
 		id: "compaction-test-model",
 		name: "Compaction Test Model",
@@ -47,7 +54,7 @@ describe("AgentSession auto-compaction queue resume", () => {
 		mkdirSync(tempDir, { recursive: true });
 		vi.useFakeTimers();
 
-		const model = createTestModel(16_000);
+		const model = createTestModel();
 		const agent = new Agent({
 			initialState: {
 				model,
