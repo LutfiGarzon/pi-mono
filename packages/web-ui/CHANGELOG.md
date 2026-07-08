@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Migrated internal dependencies from the old `@mariozechner/pi-ai` and `@mariozechner/pi-tui` packages to the renamed `@earendil-works/*` packages, pulling in the patched `@anthropic-ai/sdk` 0.91.1 ([GHSA-p7fg-763f-g4gf](https://github.com/advisories/GHSA-p7fg-763f-g4gf)).
+
 ## [0.70.6] - 2026-04-28
 
 ## [0.70.5] - 2026-04-27

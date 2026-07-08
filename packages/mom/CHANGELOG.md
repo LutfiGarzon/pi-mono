@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Migrated internal dependencies from the old `@mariozechner/pi-ai`, `@mariozechner/pi-agent-core`, and `@mariozechner/pi-coding-agent` packages to the renamed `@earendil-works/*` packages, pulling in the patched `@anthropic-ai/sdk` 0.91.1 ([GHSA-p7fg-763f-g4gf](https://github.com/advisories/GHSA-p7fg-763f-g4gf)).
+
+### Fixed
+
+- Bumped `diff` to 8.0.4 to address a Denial of Service vulnerability in `parsePatch` / `applyPatch` ([GHSA-73rr-hh4g-fpgx](https://github.com/advisories/GHSA-73rr-hh4g-fpgx)).
+
 ## [0.70.6] - 2026-04-28
 
 ## [0.70.5] - 2026-04-27
