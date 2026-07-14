@@ -85,6 +85,7 @@ describe("ExtensionRunner", () => {
 		setModel: async () => false,
 		getThinkingLevel: () => "off",
 		setThinkingLevel: () => {},
+		pickModel: async () => undefined,
 	};
 
 	const extensionContextActions: ExtensionContextActions = {
@@ -98,6 +99,7 @@ describe("ExtensionRunner", () => {
 		getContextUsage: () => undefined,
 		compact: () => {},
 		getSystemPrompt: () => "",
+		pickModel: async () => undefined,
 	};
 
 	describe("project_trust", () => {

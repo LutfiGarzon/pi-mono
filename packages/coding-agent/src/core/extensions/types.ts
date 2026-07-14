@@ -332,6 +332,23 @@ export interface ExtensionContext {
 	compact(options?: CompactOptions): void;
 	/** Get the current effective system prompt. */
 	getSystemPrompt(): string;
+
+	/**
+	 * Open the model picker and return the user's selection. Returns undefined
+	 * if the user cancels. Only available when `hasUI` is true.
+	 *
+	 * Reuses the built-in `ModelSelectorComponent` (search, two-column display,
+	 * provider grouping, key bindings) — the same component `/model` opens.
+	 *
+	 * @param options.title - Dialog title. Default: "Select model".
+	 * @param options.exclude - A model to skip (e.g. the current main model when picking a sidekick).
+	 * @param options.filter - Predicate to filter the model list (e.g. only configured-auth models).
+	 */
+	pickModel(options?: {
+		title?: string;
+		exclude?: Model<any>;
+		filter?: (m: Model<any>) => boolean;
+	}): Promise<Model<any> | undefined>;
 }
 
 /**
@@ -1321,6 +1338,18 @@ export interface ExtensionAPI {
 	/** Set thinking level (clamped to model capabilities). */
 	setThinkingLevel(level: ThinkingLevel): void;
 
+	/**
+	 * Open the model picker and return the user's selection. Returns undefined
+	 * if the user cancels. Only available when `hasUI` is true.
+	 *
+	 * See `ExtensionContext.pickModel` for full docs.
+	 */
+	pickModel(options?: {
+		title?: string;
+		exclude?: Model<any>;
+		filter?: (m: Model<any>) => boolean;
+	}): Promise<Model<any> | undefined>;
+
 	// =========================================================================
 	// Provider Registration
 	// =========================================================================
@@ -1537,6 +1566,12 @@ export type GetThinkingLevelHandler = () => ThinkingLevel;
 
 export type SetThinkingLevelHandler = (level: ThinkingLevel) => void;
 
+export type PickModelHandler = (options?: {
+	title?: string;
+	exclude?: Model<any>;
+	filter?: (m: Model<any>) => boolean;
+}) => Promise<Model<any> | undefined>;
+
 export type SetLabelHandler = (entryId: string, label: string | undefined) => void;
 
 /**
@@ -1580,6 +1615,7 @@ export interface ExtensionActions {
 	setModel: SetModelHandler;
 	getThinkingLevel: GetThinkingLevelHandler;
 	setThinkingLevel: SetThinkingLevelHandler;
+	pickModel: PickModelHandler;
 }
 
 /**
@@ -1598,6 +1634,7 @@ export interface ExtensionContextActions {
 	compact: (options?: CompactOptions) => void;
 	getSystemPrompt: () => string;
 	getSystemPromptOptions?: () => BuildSystemPromptOptions;
+	pickModel: PickModelHandler;
 }
 
 /**

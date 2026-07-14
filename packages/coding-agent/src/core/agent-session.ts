@@ -198,6 +198,15 @@ export interface ExtensionBindings {
 	abortHandler?: () => void;
 	shutdownHandler?: ShutdownHandler;
 	onError?: ExtensionErrorListener;
+	/**
+	 * Handler for the model picker. If not provided, `pi.pickModel()` and
+	 * `ctx.pickModel()` will resolve to `undefined` (no UI available).
+	 */
+	pickModelHandler?: (options?: {
+		title?: string;
+		exclude?: Model<any>;
+		filter?: (m: Model<any>) => boolean;
+	}) => Promise<Model<any> | undefined>;
 }
 
 /** Options for AgentSession.prompt() */
@@ -322,6 +331,7 @@ export class AgentSession {
 	private _extensionCommandContextActions?: ExtensionCommandContextActions;
 	private _extensionAbortHandler?: () => void;
 	private _extensionShutdownHandler?: ShutdownHandler;
+	private _extensionPickModelHandler?: ExtensionBindings["pickModelHandler"];
 	private _extensionErrorListener?: ExtensionErrorListener;
 	private _extensionErrorUnsubscriber?: () => void;
 
@@ -370,6 +380,19 @@ export class AgentSession {
 	/** Model registry for API key resolution and model discovery */
 	get modelRegistry(): ModelRegistry {
 		return this._modelRegistry;
+	}
+
+	/**
+	 * Open the model picker via the host (typically the TUI). Returns the user's
+	 * selection or undefined if cancelled / no UI available.
+	 */
+	private async _pickModel(options?: {
+		title?: string;
+		exclude?: Model<any>;
+		filter?: (m: Model<any>) => boolean;
+	}): Promise<Model<any> | undefined> {
+		if (!this._extensionPickModelHandler) return undefined;
+		return this._extensionPickModelHandler(options);
 	}
 
 	private async _getRequiredRequestAuth(model: Model<any>): Promise<{
@@ -2189,6 +2212,9 @@ export class AgentSession {
 		if (bindings.shutdownHandler !== undefined) {
 			this._extensionShutdownHandler = bindings.shutdownHandler;
 		}
+		if (bindings.pickModelHandler !== undefined) {
+			this._extensionPickModelHandler = bindings.pickModelHandler;
+		}
 		if (bindings.onError !== undefined) {
 			this._extensionErrorListener = bindings.onError;
 		}
@@ -2349,6 +2375,7 @@ export class AgentSession {
 				},
 				getThinkingLevel: () => this.thinkingLevel,
 				setThinkingLevel: (level) => this.setThinkingLevel(level),
+				pickModel: (options) => this._pickModel(options),
 			},
 			{
 				getModel: () => this.model,
@@ -2380,6 +2407,7 @@ export class AgentSession {
 				},
 				getSystemPrompt: () => this.systemPrompt,
 				getSystemPromptOptions: () => this._baseSystemPromptOptions,
+				pickModel: (options) => this._pickModel(options),
 			},
 			{
 				registerProvider: (name, config) => {

@@ -1636,6 +1636,7 @@ export class InteractiveMode {
 			abortHandler: () => {
 				this.restoreQueuedMessagesToEditor({ abort: true });
 			},
+			pickModelHandler: (options) => this.runModelSelector(options),
 			commandContextActions: {
 				waitForIdle: () => this.session.waitForIdle(),
 				newSession: async (options) => {
@@ -1810,6 +1811,7 @@ export class InteractiveMode {
 				})();
 			},
 			getSystemPrompt: () => this.session.systemPrompt,
+			pickModel: (options) => this.runModelSelector(options),
 		});
 
 		// Set up the extension shortcut handler on the default editor
@@ -4524,6 +4526,49 @@ export class InteractiveMode {
 				initialSearchInput,
 			);
 			return { component: selector, focus: selector };
+		});
+	}
+
+	/**
+	 * Public Promise-based model picker for extensions.
+	 *
+	 * Opens the same `ModelSelectorComponent` that `/model` uses, with optional
+	 * filtering and exclusion. Resolves with the picked model, or `undefined` if
+	 * the user cancels.
+	 *
+	 * Requires UI (TUI mode). In RPC / non-UI modes, returns `undefined` immediately.
+	 */
+	async runModelSelector(options?: {
+		title?: string;
+		exclude?: Model<any>;
+		filter?: (m: Model<any>) => boolean;
+	}): Promise<Model<any> | undefined> {
+		return new Promise<Model<any> | undefined>((resolve) => {
+			this.showSelector((done) => {
+				const selector = new ModelSelectorComponent(
+					this.ui,
+					options?.exclude ?? this.session.model,
+					this.settingsManager,
+					this.session.modelRegistry,
+					this.session.scopedModels,
+					async (model) => {
+						// Apply filter at pick-time (registry may have changed since call).
+						if (options?.filter && !options.filter(model)) {
+							return; // ignore the pick — model didn't pass filter
+						}
+						done();
+						this.ui.requestRender();
+						resolve(model as Model<any>);
+					},
+					() => {
+						done();
+						this.ui.requestRender();
+						resolve(undefined);
+					},
+					undefined,
+				);
+				return { component: selector, focus: selector };
+			});
 		});
 	}
 

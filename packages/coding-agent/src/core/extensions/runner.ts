@@ -41,6 +41,7 @@ import type {
 	MessageEndEvent,
 	MessageEndEventResult,
 	MessageRenderer,
+	PickModelHandler,
 	ProjectTrustContext,
 	ProjectTrustEvent,
 	ProjectTrustEventResult,
@@ -283,6 +284,7 @@ export class ExtensionRunner {
 	private compactFn: (options?: CompactOptions) => void = () => {};
 	private getSystemPromptFn: () => string = () => "";
 	private getSystemPromptOptionsFn: () => BuildSystemPromptOptions = () => ({ cwd: this.cwd });
+	private pickModelFn: PickModelHandler = async () => undefined;
 	private newSessionHandler: NewSessionHandler = async () => ({ cancelled: false });
 	private forkHandler: ForkHandler = async () => ({ cancelled: false });
 	private navigateTreeHandler: NavigateTreeHandler = async () => ({ cancelled: false });
@@ -331,6 +333,7 @@ export class ExtensionRunner {
 		this.runtime.setModel = actions.setModel;
 		this.runtime.getThinkingLevel = actions.getThinkingLevel;
 		this.runtime.setThinkingLevel = actions.setThinkingLevel;
+		this.runtime.pickModel = actions.pickModel;
 
 		// Context actions (required)
 		this.getModel = contextActions.getModel;
@@ -344,6 +347,7 @@ export class ExtensionRunner {
 		this.compactFn = contextActions.compact;
 		this.getSystemPromptFn = contextActions.getSystemPrompt;
 		this.getSystemPromptOptionsFn = contextActions.getSystemPromptOptions ?? (() => ({ cwd: this.cwd }));
+		this.pickModelFn = contextActions.pickModel;
 
 		// Flush provider registrations queued during extension loading
 		for (const { name, config, extensionPath } of this.runtime.pendingProviderRegistrations) {
@@ -695,6 +699,10 @@ export class ExtensionRunner {
 			getSystemPrompt: () => {
 				runner.assertActive();
 				return runner.getSystemPromptFn();
+			},
+			pickModel: (options) => {
+				runner.assertActive();
+				return runner.pickModelFn(options);
 			},
 		};
 	}
