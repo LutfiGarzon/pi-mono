@@ -32,9 +32,9 @@ import { AuthStorage } from "../../../src/core/auth-storage.ts";
 import { discoverAndLoadExtensions } from "../../../src/core/extensions/loader.ts";
 import { ExtensionRunner } from "../../../src/core/extensions/runner.ts";
 import type { ExtensionUIContext } from "../../../src/core/extensions/types.ts";
-import { ModelRegistry } from "../../../src/core/model-registry.ts";
 import { SessionManager } from "../../../src/core/session-manager.ts";
 import { type Theme, theme } from "../../../src/modes/interactive/theme/theme.ts";
+import { createInMemoryModelRegistry } from "../../model-runtime-test-utils.ts";
 import { createHarness, type Harness } from "../harness.ts";
 
 /**
@@ -184,7 +184,7 @@ export default function (pi) {
 
 		// The good extension's handler must still be reachable through the runner.
 		const authStorage = AuthStorage.create(path.join(tempDir, "auth.json"));
-		const modelRegistry = ModelRegistry.create(authStorage);
+		const modelRegistry = await createInMemoryModelRegistry(authStorage);
 		const sessionManager = SessionManager.inMemory();
 		const runner = new ExtensionRunner(result.extensions, result.runtime, tempDir, sessionManager, modelRegistry);
 
@@ -273,14 +273,14 @@ export default function (pi) {
 
 		// Before the command, the provider must not be in the registry
 		// (PIONEER_PROBE_KEY is not set in the test env).
-		expect(harness.session.modelRegistry.find(PROBE_PROVIDER, "probe-model")).toBeUndefined();
+		expect(harness.session.modelRuntime.getModel(PROBE_PROVIDER, "probe-model")).toBeUndefined();
 
 		// Run the slash command. The factory did not register the provider
 		// (no PIONEER_PROBE_KEY in env), so the command is what activates it.
 		await harness.session.prompt("/pioneer-api");
 
 		// After the command, the provider is in the registry.
-		const model = harness.session.modelRegistry.find(PROBE_PROVIDER, "probe-model");
+		const model = harness.session.modelRuntime.getModel(PROBE_PROVIDER, "probe-model");
 		expect(model).toBeDefined();
 		expect(model?.baseUrl).toBe("https://probe.invalid/v1");
 	});
