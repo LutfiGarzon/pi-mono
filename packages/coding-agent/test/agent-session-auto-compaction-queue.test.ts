@@ -8,6 +8,7 @@ import {
 	fauxAssistantMessage,
 	type Model,
 } from "@earendil-works/pi-ai";
+import { streamSimple } from "@earendil-works/pi-ai/compat";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AgentSession } from "../src/core/agent-session.ts";
 import { AuthStorage } from "../src/core/auth-storage.ts";
@@ -52,10 +53,10 @@ describe("AgentSession auto-compaction queue resume", () => {
 	beforeEach(async () => {
 		tempDir = join(tmpdir(), `pi-auto-compaction-queue-${Date.now()}`);
 		mkdirSync(tempDir, { recursive: true });
-		vi.useFakeTimers();
 
 		const model = createTestModel();
 		const agent = new Agent({
+			streamFn: streamSimple,
 			initialState: {
 				model,
 				systemPrompt: "Test",
@@ -81,7 +82,6 @@ describe("AgentSession auto-compaction queue resume", () => {
 
 	afterEach(() => {
 		session.dispose();
-		vi.useRealTimers();
 		vi.restoreAllMocks();
 		if (tempDir && existsSync(tempDir)) {
 			rmSync(tempDir, { recursive: true });
@@ -115,9 +115,9 @@ describe("AgentSession auto-compaction queue resume", () => {
 			timestamp: now - 500,
 		});
 		session.agent.state.messages = sessionManager.buildSessionContext().messages;
-		session.agent.streamFn = (summaryModel) => {
+		session.agent.streamFunction = (summaryModel) => {
 			const stream = createAssistantMessageEventStream();
-			queueMicrotask(() => {
+			void Promise.resolve().then(() => {
 				stream.push({
 					type: "done",
 					reason: "stop",
