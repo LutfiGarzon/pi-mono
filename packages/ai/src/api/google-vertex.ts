@@ -452,7 +452,8 @@ function buildParams(
 		generationConfig.temperature = options.temperature;
 	}
 	if (options.maxTokens !== undefined) {
-		generationConfig.maxOutputTokens = options.maxTokens;
+		// Vertex Gemini API maxOutputTokens range is 1-65535 (65536 exclusive).
+		generationConfig.maxOutputTokens = Math.min(options.maxTokens, 65535);
 	}
 
 	const functionCallingMode = context.tools?.length
