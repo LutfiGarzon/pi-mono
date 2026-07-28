@@ -1,4 +1,4 @@
-import { isKeyRelease, matchesKey } from "../keys.ts";
+import { isKeyRelease, Key, matchesKey } from "../keys.ts";
 import type { Component, TUI } from "../tui.ts";
 import { truncateToWidth, visibleWidth } from "../utils.ts";
 
@@ -164,7 +164,6 @@ export class FixedBottomArea {
 		if (!this.installed) return;
 		this.scrollOffset += lines;
 		this.wasAtBottom = false;
-		this.clearSelection();
 		this.tui.requestRender();
 	}
 
@@ -172,7 +171,6 @@ export class FixedBottomArea {
 		if (!this.installed) return;
 		this.scrollOffset = Math.max(0, this.scrollOffset - lines);
 		if (this.scrollOffset === 0) this.wasAtBottom = true;
-		this.clearSelection();
 		this.tui.requestRender();
 	}
 
@@ -180,7 +178,6 @@ export class FixedBottomArea {
 		if (this.scrollOffset === 0) return;
 		this.scrollOffset = 0;
 		this.wasAtBottom = true;
-		this.clearSelection();
 		this.tui.requestRender();
 	}
 
@@ -406,8 +403,9 @@ export class FixedBottomArea {
 			return { consume: true };
 		}
 
-		// Auto-scroll to bottom when typing
-		if (!this.isAtBottom() && data.length === 1 && data.charCodeAt(0) >= 32) {
+		// Auto-scroll to bottom only when submitting a message (Enter/Return).
+		// Typing while reading no longer yanks you away from your position.
+		if (!this.isAtBottom() && (matchesKey(data, Key.enter) || matchesKey(data, Key.return))) {
 			this.scrollToBottom();
 		}
 
@@ -458,11 +456,9 @@ export class FixedBottomArea {
 	// ── Mouse event handling ────────────────────────────────────────────────
 
 	private handleMouse(packet: SgrMousePacket): void {
-		// Scroll wheel
+		// Scroll wheel — don't clear selection so drag-then-scroll keeps the selection.
 		const delta = this.mouseScrollDelta(packet);
 		if (delta !== 0) {
-			this.selectionDragging = false;
-			this.clearSelection();
 			if (delta > 0) this.scrollUp(delta);
 			else this.scrollDown(-delta);
 			return;
@@ -502,12 +498,6 @@ export class FixedBottomArea {
 	}
 
 	// ── Text selection ──────────────────────────────────────────────────────
-
-	private clearSelection(): void {
-		this.selectionAnchor = null;
-		this.selectionFocus = null;
-		this.selectionDragging = false;
-	}
 
 	private getSelectionRange(): { start: SelectionPoint; end: SelectionPoint } | null {
 		if (!this.selectionAnchor || !this.selectionFocus) return null;
