@@ -15,6 +15,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { ENV_AGENT_DIR } from "../src/config.ts";
 
 const cliPath = resolve(__dirname, "../src/cli.ts");
+const sourceResolverPath = resolve(__dirname, "../src/experimental/source-resolver.ts");
 const tempDirs: string[] = [];
 
 afterEach(() => {
@@ -126,13 +127,12 @@ async function runCli(
 		for (const key of keysToStrip) {
 			delete childEnv[key];
 		}
-		const child = spawn(process.execPath, [cliPath, ...resolvedArgs], {
+		const child = spawn(process.execPath, ["--import", sourceResolverPath, cliPath, ...resolvedArgs], {
 			cwd: dirs.projectDir,
 			env: {
 				...childEnv,
 				[ENV_AGENT_DIR]: dirs.agentDir,
 				PI_OFFLINE: "1",
-				TSX_TSCONFIG_PATH: resolve(__dirname, "../../../tsconfig.json"),
 			},
 			stdio: ["ignore", "ignore", "pipe"],
 		});
