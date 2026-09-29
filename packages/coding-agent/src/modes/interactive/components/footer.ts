@@ -205,10 +205,10 @@ export class FooterComponent implements Component {
 		const modelName = state.model?.id || "no-model";
 		const minPadding = 2;
 
-		let rightSide = modelName;
+		let rightSideWithoutProvider = modelName;
 		if (state.model?.reasoning) {
 			const tl = state.thinkingLevel || "off";
-			rightSide = tl === "off" ? `${modelName} • thinking off` : `${modelName} • ${tl}`;
+			rightSideWithoutProvider = tl === "off" ? `${modelName} • thinking off` : `${modelName} • ${tl}`;
 		}
 		// A virtual model routes each request; show where the latest response went.
 		const routed = this.session.routedModel;

@@ -2203,6 +2203,7 @@ export interface ExtensionContextActions {
 	) => Promise<AgentToolCallOutcome>;
 	/** Backs `ExtensionToolContext.tools`. */
 	getCallableTools?: () => readonly AgentTool[];
+	pickModel: PickModelHandler;
 }
 
 /**
