@@ -1,6 +1,6 @@
-import type { JsonValue } from "../types.ts";
+import type { JsonValue } from "../json.ts";
 
-export type { JsonValue } from "../types.ts";
+export type { JsonValue } from "../json.ts";
 
 const isObj = (value: unknown): value is object => value !== null && typeof value === "object";
 
@@ -109,11 +109,25 @@ export function overlap(a: string, b: string, scan: number, probe = 64, maxCandi
 	return 0;
 }
 
+/**
+ * `text.slice(start, end)` as a string of its own. V8 represents a slice of 13 or more characters as a view that keeps
+ * all of `text` alive, so an append op cut from a long, growing string would retain that whole string for as long as
+ * the op lives: in a delta chain, a watch backlog, or a value built by applying the op. Appending a character and
+ * slicing it off again makes V8 copy just the slice.
+ */
+export function ownedSlice(text: string, start: number, end = text.length): string {
+	return `${text.slice(start, end)} `.slice(0, -1);
+}
+
 // ─── Immutable revision tracking ─────────────────────────────────────────────
 
 export { diffRevisions } from "./diff.ts";
 export type { Draft } from "./draft.ts";
-export { type Change, type Prepared, type Tracker, track } from "./tracker.ts";
+export { appendText, type Change, type Prepared, type StringKeys, type Tracker, track } from "./tracker.ts";
+
+// ─── Pending ops of a slow consumer ──────────────────────────────────────────
+
+export { PendingOps, type PendingTake } from "./pending.ts";
 
 // ─── Path safety ─────────────────────────────────────────────────────────────
 
@@ -476,19 +490,9 @@ function copyContainers(root: JsonValue, path: Path, owned: WeakSet<object>): Js
 	const copy = (value: JsonValue): JsonValue[] | Record<string, JsonValue> => {
 		if (Array.isArray(value)) return value.slice();
 		if (!isObj(value)) throw new PathError(path);
-		const result = Object.create(Object.getPrototypeOf(value) === null ? null : Object.prototype) as Record<
-			string,
-			JsonValue
-		>;
-		for (const key of Object.keys(value)) {
-			Object.defineProperty(result, key, {
-				value: (value as Record<string, JsonValue>)[key],
-				writable: true,
-				enumerable: true,
-				configurable: true,
-			});
-		}
-		return result;
+		// Spread and `Object.assign()` onto a null-prototype object define own data properties, `__proto__` included,
+		// as `Object.defineProperty()` per key does, at a fraction of its cost.
+		return Object.getPrototypeOf(value) === null ? Object.assign(Object.create(null), value) : { ...value };
 	};
 	if (!isObj(root)) throw new PathError(path);
 	let copiedRoot: JsonValue[] | Record<string, JsonValue>;
@@ -543,6 +547,10 @@ function resolve(root: JsonValue, path: Path): JsonValue {
 //
 // Path interning and arity omission live between the tracker and a boundary;
 // `Op` and `apply` know nothing about them.
+//
+// Consecutive batches of one encoder may be concatenated into one batch (links
+// coalesce waiting state this way): only path ids span batches, and every batch
+// starts with an explicit path.
 //
 // ONE PAIR PER INDEPENDENT STATE STREAM. Every decoder must observe exactly the
 // batches encoded by its matching encoder, beginning with that state's base.
@@ -655,7 +663,8 @@ export function encoder(): Encoder {
 }
 
 export interface Decoder {
-	decode(wire: readonly WireOp[]): Op[];
+	/** Ops as received: each is validated (`assertValidWireOp`) before use. */
+	decode(wire: readonly unknown[]): Op[];
 }
 
 export function decoder(): Decoder {
