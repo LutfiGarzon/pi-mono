@@ -306,7 +306,7 @@ console.log("   GET / signed in:", (await fetch(url, { headers: { cookie } })).s
 1. owner link: http://127.0.0.1:<port>/_chord/owner#<token>
    data directory: cache, logs, owner-token, plugins, server, telemetry.sqlite, telemetry.sqlite-shm, telemetry.sqlite-wal, workers
    GET / signed out: 401
-   the owner signs in: 200 chord-session=…
+   the owner signs in: 200 chord-sign-in=…
    GET / signed in: 200
 ```
 
@@ -319,7 +319,7 @@ answered 401: HTTP **denies by default**, before any plugin code runs, unless a 
 
 The **owner link** (`/_chord/owner#<token>`) is how the owner gets in: a single-use token, valid ten minutes, made at
 each start. It sits in the URL's fragment, which browsers never send, so it never reaches a log; the link's page posts
-it and receives a session cookie. A command-line client on the same machine reads `owner-token` instead (mode 0600,
+it and receives a sign-in cookie. A command-line client on the same machine reads `owner-token` instead (mode 0600,
 chapter III). Nothing is the owner because it comes from loopback: any local process could.
 
 # A List on Its Own Worker {#worker lede="A host kind, a remote contract, a worker facet with a table and a live query, and the principal that adds a todo."}
@@ -1333,7 +1333,7 @@ await until(() => app.plugins.state.value.dirty.includes("@todo/lists"));
 const applied = await app.applyChanges(context);
 console.log("9. lists changed, rolled out to:", applied.steps.map(({ name }) => name).join(", "));
 for (const host of applied.steps.find(({ name }) => name === "list")!.hosts) {
-	const fates = "report" in host ? host.report.objects.map(({ object, kind }) => `${object} ${kind}`) : [];
+	const fates = host.kind === "reloaded" ? host.report.objects.map(({ object, kind }) => `${object} ${kind}`) : [];
 	console.log(`   on ${host.host}:`, [...new Set(fates)].join(", "));
 }
 await adas.add("  tea  ", context);

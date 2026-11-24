@@ -33,7 +33,7 @@ export interface FixedAreaCluster {
 	cursorCol: number;
 }
 
-type RenderFn = (width: number) => string[];
+type RenderFn = Component["render"];
 
 interface SgrMousePacket {
 	code: number;
@@ -89,7 +89,7 @@ export class FixedBottomArea {
 	private originalWrite: (data: string) => void;
 	private originalRowsDescriptor: PropertyDescriptor | undefined;
 	private originalRowsValue: number | undefined;
-	private originalRender: ((w: number) => string[]) | undefined;
+	private originalRender: RenderFn | undefined;
 	private originalDoRender: (() => void) | undefined;
 	private installed = false;
 	private scrollOffset = 0;
@@ -106,7 +106,7 @@ export class FixedBottomArea {
 	private selectionFocus: SelectionPoint | null = null;
 	private selectionDragging = false;
 	private visibleScrollStart = 0;
-	private scrollableLines: string[] = [];
+	private scrollableLines: readonly string[] = [];
 
 	/** Callback: render the fixed cluster given the terminal width. */
 	public renderCluster: ((width: number) => FixedAreaCluster) | null = null;
@@ -143,7 +143,7 @@ export class FixedBottomArea {
 		component.render = () => [];
 	}
 
-	renderHidden(component: Component, width: number): string[] {
+	renderHidden(component: Component, width: number): readonly string[] {
 		const render = this.hiddenComponents.get(component);
 		return render ? render(width) : component.render(width);
 	}
